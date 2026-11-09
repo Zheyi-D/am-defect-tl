@@ -141,12 +141,12 @@ python -c "import torch, timm, gradio; print('ok', torch.__version__)"
 
 | 任务 | 状态 | 分支 / PR | 产物 | 备注 |
 |---|---|---|---|---|
-| T1 图表生成器 | ⬜ 未开始 | | | 最高优先，卡着报告第 3 节 |
-| T2 表格导出 | ⬜ 未开始 | | | |
-| T3 效率测量 | ⬜ 未开始 | | | GPU 时延需 Kenneth 补 |
-| T4 LIME | ⬜ 未开始 | | | 用 `samples/` 即可 |
-| T5 Gradio demo | ⬜ 未开始 | | | 复用 `gradcam.py` |
-| T6 工程收尾 | ⬜ 未开始 | | | 最后做 |
+| T1 图表生成器 | 👀 待 Kenneth review | feat/leiman-tasks | `analysis/make_figures.py`、5 张 `fig_*.png`、`INDEX.md` | 详见 HANDOFF T1 |
+| T2 表格导出 | 👀 待 Kenneth review | feat/leiman-tasks | `analysis/export_tables.py`、`reports/tables/*.{md,tex}` | 448 个数值已逐格核对 |
+| T3 效率测量 | 👀 待 Kenneth review | feat/leiman-tasks | `analysis/efficiency.py`、`results/efficiency.csv`、`fig_efficiency.png` | GPU 时延待补（HANDOFF 有可直接跑的脚本） |
+| T4 LIME | 👀 待 Kenneth review | feat/leiman-tasks | `analysis/lime_explain.py`、3 张 `lime_*.png` | 单图 5–9 秒 |
+| T5 Gradio demo | 👀 待 Kenneth review | feat/leiman-tasks | `analysis/demo_app.py`、`analysis/checkpoint.py`、`docs/DEMO.md` | 额外附了离线看板 `docs/index.html` |
+| T6 工程收尾 | 👀 待 Kenneth review | feat/leiman-tasks | `reproduce.sh`、`tests/test_analysis_outputs.py`、`docs/archive/` | 13 tests OK |
 
 状态取值：⬜ 未开始 / 🔄 进行中 / 👀 待 Kenneth review / ✅ 已合并
 
@@ -160,9 +160,10 @@ python -c "import torch, timm, gradio; print('ok', torch.__version__)"
 | 5 个分类头 checkpoint | ✅ `results/runs/*/model.pt` |
 | Grad-CAM / 预测示例图 10 张 | ✅ `results/figures/` |
 | 论文对标表 297 行 | ✅ `docs/paper_results.csv` |
-| 报告图表生成器 | ❌ 不存在（= T1） |
-| 表格导出 | ❌ 不存在（= T2） |
-| 效率 / LIME / demo | ❌ 空壳（= T3 / T4 / T5） |
+| 报告图表生成器 | ✅ `analysis/make_figures.py`，5 张 `results/figures/fig_*.png` + `INDEX.md`（T1） |
+| 表格导出 | ✅ `analysis/export_tables.py`，`reports/tables/table{1..5}_*.{md,tex}`（T2） |
+| 效率 / LIME / demo | ✅ `analysis/{efficiency,lime_explain,demo_app}.py`（T3 / T4 / T5）；GPU 时延列待 Kenneth 补 |
+| 工程收尾 | ✅ `reproduce.sh`、`tests/test_analysis_outputs.py`、`docs/archive/`（T6） |
 
 ---
 
