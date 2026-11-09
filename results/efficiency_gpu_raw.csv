@@ -1,0 +1,12 @@
+model,mean_ms,median_ms,p95_ms,min_ms,gpu_name
+vgg16,14.2,13.34,16.19,12.85,Tesla T4
+vgg19,17.29,17.12,18.78,16.76,Tesla T4
+resnet50,8.05,6.07,11.75,5.77,Tesla T4
+resnet101,13.1,11.09,19.66,10.82,Tesla T4
+inception_resnet_v2,30.27,30.06,31.71,29.01,Tesla T4
+xception,6.93,6.34,8.93,5.28,Tesla T4
+mobilenet_v2,5.36,5.28,5.62,5.13,Tesla T4
+efficientnet_b0,8.03,7.98,8.62,7.5,Tesla T4
+efficientnet_b7,27.28,27.24,28.57,25.81,Tesla T4
+efficientnet_v2m,25.2,25.13,26.79,23.52,Tesla T4
+nasnet_large,40.04,39.93,42.07,38.01,Tesla T4

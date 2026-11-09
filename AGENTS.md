@@ -24,12 +24,10 @@ status:
   runs_completed: 66
   runs_expected: 66
   checkpoints: 10       # results/runs/*/model.pt (head only; 5 on D1+Adam, 5 on D2+Adam)
-  figures: 14
+  figures: 24
   leakage_experiment: done   # results/leakage.csv, results/figures/fig_leakage_combined.png
-  unimplemented:
-    - analysis/lime_explain.py
-    - analysis/efficiency.py
-    - analysis/demo_app.py
+  analysis_tasks: done       # T1-T6 delivered by jellyfishhamburger (PR #8); GPU latency by Kenneth
+  unimplemented: []
 ```
 
 ---
@@ -117,7 +115,10 @@ status:
 | Grad-CAM / 预测图 | ✅ 10 张，在 `results/figures/` |
 | 论文对标表 | ✅ `docs/paper_results.csv`（297 行，作者报告值） |
 | 泄漏对照实验 | ✅ 完成（full + small15 两种设定，各 3 模型）；结果 `results/leakage.csv`，图 `fig_leakage_combined.png`。结论为**阴性**：未见泄漏效应（差异 ±1.5% 内，多数为负） |
-| 未实现 | `analysis/{lime_explain,efficiency,demo_app}.py`（均为 `NotImplementedError`） |
+| 分析模块 T1–T6 | ✅ 全部实现（图表 / 表格 / 效率 / LIME / demo / 工程收尾），PR #8 已合并 |
+| 效率表 | ✅ `results/efficiency.csv` 含 CPU 与 **GPU 时延**（Tesla T4 实测，11/11 行）；`reports/tables/table5_efficiency.*` 已带 GPU 列 |
+| Gradio demo | ✅ `analysis/demo_app.py` + `docs/DEMO.md`（本地 CPU 运行，无需 GPU） |
+| 报告图表/表格 | ✅ `results/figures/fig_*.png`（6 张）+ `reports/tables/table{1..5}_*.{md,tex}` |
 | 报告 / PPT | ❌ 不在本仓库（由非代码成员在外部文档完成） |
 
 ## 9. 已知坑（踩过的）

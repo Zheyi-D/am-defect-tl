@@ -18,12 +18,12 @@ PR 描述里**直接引用本文件对应小节**（例：`见 docs/HANDOFF.md#t
 
 | 任务 | 产物 | 本地自验 | 待 Kenneth 在 Kaggle 执行 | 状态 |
 |---|---|---|---|---|
-| T1 报告图表生成器 | `analysis/make_figures.py` + 5 张 `fig_*.png` + `INDEX.md` | ✅ 5/5 生成 | 无（纯本地） | 👀 待 review |
-| T2 表格导出 | `analysis/export_tables.py` + `reports/tables/*.{md,tex}` | ✅ 448 个数值 0 处不一致 | 无（纯本地） | 👀 待 review |
-| T3 效率测量 | `analysis/efficiency.py` + `results/efficiency.csv` + `fig_efficiency.png` | ✅ 11 行 | **补 GPU 时延列**（见下） | 👀 待 review |
-| T4 LIME | `analysis/lime_explain.py` + 3 张 `lime_*.png` | ✅ 3 模型各 1 张，单图 5–9 秒 | 无（纯本地） | 👀 待 review |
-| T5 Gradio demo | `analysis/demo_app.py` + `analysis/checkpoint.py` | ✅ 本地 200，10 个 checkpoint 可切换 | 无（本地跑最稳） | 👀 待 review |
-| T6 工程收尾 | `reproduce.sh` + 新测试 + `docs/archive/` | ✅ 13 tests OK，dry-run 通过 | 无 | 👀 待 review |
+| T1 报告图表生成器 | `analysis/make_figures.py` + 6 张 `fig_*.png` + `INDEX.md` | ✅ 5/5 生成 | 无（纯本地） | ✅ 已合并（PR #8） |
+| T2 表格导出 | `analysis/export_tables.py` + `reports/tables/*.{md,tex}` | ✅ 448 个数值 0 处不一致 | 无（纯本地） | ✅ 已合并（PR #8） |
+| T3 效率测量 | `analysis/efficiency.py` + `results/efficiency.csv` + `fig_efficiency.png` | ✅ 11 行 | ✅ GPU 时延已由 Kenneth 补齐（T4 实测） | ✅ 已完成 |
+| T4 LIME | `analysis/lime_explain.py` + 3 张 `lime_*.png` | ✅ 3 模型各 1 张，单图 5–9 秒 | 无（纯本地） | ✅ 已合并（PR #8） |
+| T5 Gradio demo | `analysis/demo_app.py` + `analysis/checkpoint.py` + `docs/DEMO.md` | ✅ 本地 200，10 个 checkpoint 可切换 | 无（本地跑最稳） | ✅ 已合并（PR #8） |
+| T6 工程收尾 | `reproduce.sh` + 新测试 + `docs/archive/` | ✅ 13 tests OK，dry-run 通过 | 无 | ✅ 已合并（PR #8） |
 
 状态取值：⬜ 未开始 / 🔄 进行中 / 🟡 待 Kenneth 验证 / ✅ 已完成 / ❌ 被退回
 
@@ -121,34 +121,19 @@ PR 描述里**直接引用本文件对应小节**（例：`见 docs/HANDOFF.md#t
   ⚠️ 第一次测量时机器上同时在下模型/跑 LIME，均值被拖高（例如 EfficientNet-B0 51.3 → 34.6 ms，
   NASNet-Large 580.1 → 389.5 ms，EfficientNetV2-M 344.9 → 161.8 ms，后者从"比 VGG16 慢一倍"变成"和 VGG16 持平"）。
   CSV 与图已用空载数据覆盖。**结论只读相对排序，且必须在空载机器上测。**
-- **待 Kenneth 在 Kaggle 执行**：
+- **Kenneth 验证结果**（2026-11-09 19:54，Kaggle Tesla T4，GPU 排队约 100 分钟后执行成功）：
 
-  ```bash
-  # 目标：补 gpu_ms_per_image 列（本地无 GPU）
-  # 预计 10 分钟，T4 GPU 会话
-  python - <<'PY'
-  import csv, time, torch
-  from src.models import TransferModel
-  rows = list(csv.DictReader(open("results/efficiency.csv")))
-  dev = "cuda"
-  x = torch.zeros(1, 3, 224, 224, device=dev)
-  for r in rows:
-      m = TransferModel(r["model"], pretrained=True, freeze="all_conv").to(dev).eval()
-      with torch.no_grad():
-          for _ in range(5): m(x)          # warmup
-          torch.cuda.synchronize(); t0 = time.perf_counter()
-          for _ in range(50): m(x)
-          torch.cuda.synchronize()
-      r["gpu_ms_per_image"] = round((time.perf_counter()-t0)/50*1000, 1)
-      print(r["model"], r["gpu_ms_per_image"])
-  with open("results/efficiency.csv", "w", newline="") as fh:
-      w = csv.DictWriter(fh, fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
-  PY
-  # 预期：11 行全部有 GPU 时延；MobileNetV2 应在 3–6 ms，NASNet-Large 30–60 ms 量级
-  ```
+  - 脚本：`tools/measure_gpu_latency.py --iters 50 --warmup 5`（CUDA Event 计时，取中位数）
+  - 原始数据：`results/efficiency_gpu_raw.csv`（mean / median / p95 / min + GPU 名）
+  - 已把 **median** 写入 `results/efficiency.csv` 的 `gpu_ms_per_image` 列（**11/11 行齐全**，无 N/A）
+  - 重跑 `python -m analysis.export_tables` 后 **Table 5 已带 GPU 列**；`--check` 仍为 448 个数值、0 处不一致
+  - 实测中位数（ms，batch=1，224×224）：
+    MobileNetV2 **5.3** · ResNet50 6.1 · Xception 6.3 · EfficientNet-B0 8.0 · ResNet101 11.1 ·
+    VGG16 13.3 · VGG19 17.1 · EfficientNetV2-M 25.1 · EfficientNet-B7 27.2 ·
+    InceptionResNetV2 30.1 · NASNet-Large **39.9**
+  - 结论（可直接写进报告的 Discussion）：T4 上 **11 个模型全部 ≤ 40 ms/张（≥25 FPS）**，满足产线实时质检的延迟要求；
+    最轻的 MobileNetV2 在纯 CPU 上也有 22.9 ms（≈44 FPS）→ 部署不必依赖 GPU
 
-  跑完后请把结果贴回本节，并改 `analysis/export_tables.py` 的 Table 5 注释（目前写的是 "GPU pending"）。
-- **Kenneth 验证结果**：
 - **遗留问题**：CPU 数字与本机绑定（作者笔记本，无 GPU、未锁线程），**只能读相对排序**，不要写进论文当绝对性能。
   另外本次踩到一个坑：**测量时必须让机器空载**（并行下载/跑 LIME 会让均值虚高 40%–100%），我已按空载重测覆盖。
 
