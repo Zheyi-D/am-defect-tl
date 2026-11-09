@@ -204,7 +204,19 @@ python tools/build_kernel.py --slug my-run --cmd "<上面的任意命令>"
 
 ---
 
-## 9. 给 AI agent 的说明
+## 9. 报告与在线文档
+
+| 项 | 位置 |
+|---|---|
+| **报告正文（协同编辑）** | **WPS 金山文档：https://www.kdocs.cn/l/cokbmUbGMYkE** — 说明见 [reports/ONLINE.md](reports/ONLINE.md) |
+| 报告表格（可粘贴） | [`reports/tables/`](reports/tables/)（Markdown + LaTeX，脚本生成） |
+| 报告图表 | [`results/figures/`](results/figures/)，图号与 caption 见 [INDEX.md](results/figures/INDEX.md) |
+| 封面/目录结构源 | [reports/WPS-REPORT-OUTLINE.md](reports/WPS-REPORT-OUTLINE.md) |
+| 提交清单 | [docs/SUBMISSION.md](docs/SUBMISSION.md) |
+
+> 正文不进 Git（`docx` 无法合并多人编辑）；仓库只提供**唯一的数字、图与表**，定稿时导出一份快照到 `reports/submission/`。
+
+## 10. 给 AI agent 的说明
 
 - 仓库的机器可读约定、规范命令、不变量与已知坑：[**AGENTS.md**](AGENTS.md)
 - jellyfishhamburger（负责非 GPU 训练类工作）的任务卡与协同规则：[**docs/TASKS.md**](docs/TASKS.md)

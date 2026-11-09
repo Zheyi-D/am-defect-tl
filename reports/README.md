@@ -1,7 +1,10 @@
 # reports/ —— 报告与演示的**归档**目录（不是协同写作的地方）
 
-> ⚠️ 报告正文在 **Word Online** 里协同编辑，PPT 在 **PowerPoint** 里做。
-> 本目录只负责两件事：**存放仓库生成的素材**、**在定稿时存档一份快照**。
+> 🔗 **在线协作文档（报告正文）：https://www.kdocs.cn/l/cokbmUbGMYkE**
+> （WPS 金山文档；元数据与维护规则见 [ONLINE.md](ONLINE.md)）
+>
+> ⚠️ 正文在**金山文档**里协同编辑，PPT 在演示文稿里做。
+> 本目录只负责三件事：**存放仓库生成的素材**、**记录在线文档入口**、**定稿时存档一份快照**。
 > 原因：`docx` / `pptx` 是二进制文件，Git 无法合并两个人的同时编辑 —— 每次改都提交一份只会制造版本地狱。
 
 ---
@@ -10,9 +13,10 @@
 
 | 路径 | 放什么 | 谁生成 |
 |---|---|---|
+| **`reports/ONLINE.md`** | **在线协作文档入口**：链接、file_id、权限说明、更新方式 | 组长 |
 | `reports/tables/` | 5 张报告表格（`table1…table5` × `.md` + `.tex`） | `python -m analysis.export_tables` 自动生成，**不要手改** |
 | `reports/submission/` | **定稿快照**：最终 `.docx` / `.pptx` / 源码 `.zip`（11/29 放一次即可） | 组长在定稿当天放入 |
-| `reports/WPS-REPORT-OUTLINE.md` | **WPS/Kdocs 共享文档的封面 + 目录 + 图表清单**（结构源；改章节结构就改这里并提 PR） | 组长 |
+| `reports/WPS-REPORT-OUTLINE.md` | 封面/目录/图表清单的**结构源**（改结构就改这里并提 PR） | 组长 |
 | `reports/README.md` | 本文件 | — |
 
 图不在本目录 —— 全部在 **`results/figures/`**，图号与 caption 见 [`results/figures/INDEX.md`](../results/figures/INDEX.md)。
