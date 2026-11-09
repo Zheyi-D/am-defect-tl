@@ -19,15 +19,33 @@
 | Fig. 9 | `lime_vgg16__D1__adam__s42.png` | LIME super-pixel explanations for three checkpoints. | 3.5 | `python -m analysis.lime_explain --models ...` |
 | Fig. 10 | `fig_efficiency.png` | Parameter count versus single-image latency (CPU). | 3.6 | `python -m analysis.efficiency` |
 
-## 备用图（可放附录，或按需替换主图）
+## 全部图文件（共 23 个 PNG，逐个列出，避免简写歧义）
 
-| 文件 | 说明 |
-|---|---|
-| `gradcam_{resnet50,mobilenet_v2,xception,inception_resnet_v2}__D1__adam__s42.png` | 其余 4 个模型的 Grad-CAM |
-| `predict_*__D1__adam__s42.png`（5 张） | 预测结果网格（含错例），适合做错误分析插图 |
-| `lime_{resnet50,mobilenet_v2}__D1__adam__s42.png` | 另外 2 个模型的 LIME |
-| `fig_leakage_full.png` / `fig_leakage_small15.png` | 泄漏实验的单设定版本（主图用 combined） |
-| `fig_confusion_grid.png` | 已用作 Fig. 4 |
+| 文件 | 报告图号 | 用途 |
+|---|---|---|
+| `fig_accuracy_by_model.png` | Fig. 2 | main figure |
+| `fig_confusion_grid.png` | Fig. 4 | main figure |
+| `fig_delta_acc.png` | Fig. 5 | main figure |
+| `fig_efficiency.png` | Fig. 10 | main figure |
+| `fig_leakage_combined.png` | Fig. 7 | main figure |
+| `fig_leakage_full.png` | — | leakage experiment, full-data regime only (backup) |
+| `fig_leakage_small15.png` | — | leakage experiment, small-data regime only (backup) |
+| `fig_optimizer_heatmap.png` | Fig. 3 | main figure |
+| `fig_pipeline.png` | Fig. 1 | main figure |
+| `fig_ranking.png` | Fig. 6 | main figure |
+| `gradcam_inception_resnet_v2__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
+| `gradcam_mobilenet_v2__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
+| `gradcam_resnet50__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
+| `gradcam_vgg16__D1__adam__s42.png` | Fig. 8 | main figure |
+| `gradcam_xception__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
+| `lime_mobilenet_v2__D1__adam__s42.png` | — | LIME for another backbone (backup) |
+| `lime_resnet50__D1__adam__s42.png` | — | LIME for another backbone (backup) |
+| `lime_vgg16__D1__adam__s42.png` | Fig. 9 | main figure |
+| `predict_inception_resnet_v2__D1__adam__s42.png` | — | prediction grid incl. errors (backup / error analysis) |
+| `predict_mobilenet_v2__D1__adam__s42.png` | — | prediction grid incl. errors (backup / error analysis) |
+| `predict_resnet50__D1__adam__s42.png` | — | prediction grid incl. errors (backup / error analysis) |
+| `predict_vgg16__D1__adam__s42.png` | — | prediction grid incl. errors (backup / error analysis) |
+| `predict_xception__D1__adam__s42.png` | — | prediction grid incl. errors (backup / error analysis) |
 
 ## 表格（`reports/tables/`，脚本生成，禁止手改；共 6 张 × md + tex）
 
