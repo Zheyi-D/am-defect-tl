@@ -14,3 +14,8 @@
 *.jpeg  binary
 *.pdf   binary
 *.tex   text eol=lf
+
+# Office 文件按二进制处理：只在定稿时放一份快照进 reports/submission/，见 reports/README.md
+*.docx  binary
+*.pptx  binary
+*.xlsx  binary

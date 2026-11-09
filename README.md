@@ -123,10 +123,13 @@ results/
   runs/<run_id>/     #   每个 run：metrics.json + 混淆矩阵 + 训练曲线 + model.pt
   leaderboard.csv    #   66 行结果总表（脚本生成，禁止手改）
   figures/           #   Grad-CAM / LIME / 汇总图，索引见 INDEX.md
-reports/tables/      #   报告表格（生成物，勿手改）
-docs/                # 数据说明、结果格式、作者代码分析、论文数值对照
-tools/               # 自包含 Kaggle kernel 构建器、作者结果表抽取脚本
-tests/               # 契约测试（划分不泄漏 / metrics schema）
+reports/             # 报告与演示的归档（正文在 Word Online，这里只放素材与定稿快照）
+  tables/            #   报告表格：5 张 × (Markdown + LaTeX)，脚本生成，勿手改
+  submission/        #   定稿快照：docx / pptx / 源码 zip（只在定稿时放一次，见 docs/SUBMISSION.md）
+docs/                # 数据说明、结果格式、作者代码分析、论文数值对照、任务书、交接单、提交清单
+tools/               # 自包含 Kaggle kernel 构建器、作者结果表抽取、GPU 时延测量
+tests/               # 契约测试（划分不泄漏 / metrics schema / 分析产物一致性）
+samples/             # 20 张 224×224 样图（本地跑 LIME/demo 用，不参与训练评估）
 ```
 
 ---
