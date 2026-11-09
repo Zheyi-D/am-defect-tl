@@ -149,16 +149,15 @@ status:
 
 **加一个分析实验**：在 `analysis/` 新建模块，输出到 `results/`，并把产物格式登记到 `docs/RESULTS.md`。
 
-## 10.5 submissions/ —— 学生提交区（只准写自己那一格）
+## 10.5 submissions/ —— 学生草稿区（单文件）
 
-`submissions/<CODE>/`（CODE = P1–P4 / S1 / S2）是 6 位同学唯一可写的区域，
-每格有自己的 `README.md`（允许的文件名）和 `status.md`（状态）。
+`submissions/report.md` 是 6 位同学**唯一可写**的文件：已按章节分好标题，他们在自己那节下面写草稿。
 
 规则：
-1. 每个 agent 只能写 `submissions/<自己的代号>/`，**不得**修改其他人的目录
-2. **不得**修改 `src/`、`analysis/`、`tools/`、`tests/`、`results/`、`splits/`、`docs/`、根目录文档
-3. 提交到分支 `submissions/<代号>`，**不得 push `main`**
-4. 正文里不得手打数字：一律引用 `results/leaderboard.csv` / `reports/tables/`
+1. 允许写：`submissions/report.md`（自己那节）、`submissions/README.md`
+2. **不得**修改 `src/`、`analysis/`、`tools/`、`tests/`、`results/`、`splits/`、`docs/`、`reports/`、根目录文档
+3. **不得**删改 `report.md` 里别人的段落（冲突时保留双方内容，由维护者合并）
+4. 正文数字只能引用 `results/leaderboard.csv` / `reports/tables/`，不许估算
 5. 图不复制进仓库，用图号引用（`results/figures/CATALOG.md`）
 
 ## 11. 贡献边界

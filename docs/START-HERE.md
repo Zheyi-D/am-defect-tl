@@ -108,28 +108,24 @@
 3. 在 `CONTRIBUTIONS.md` §二 自己那一行填上"写了什么"
 4. 交给 P1 统稿（P1 负责最后一遍数字与格式核对）
 
-## 6.5 你的提交区（把成品放这里）
+## 6.5 草稿提交区（就一个文件）
 
-在线文档是"协同写作区"，仓库里的 **[`submissions/<你的代号>/`](../submissions/)** 是"成品归档区"。
+在线文档是协同写正式稿的地方；仓库里的 **[`submissions/report.md`](../submissions/report.md)** 是**草稿备份区**。
 
-| 你的代号 | 目录 | 允许的文件 |
-|---|---|---|
-| P1 | `submissions/P1/` | `P1_abstract.md`、`P1_conclusion.md`、`status.md` |
-| P2 | `submissions/P2/` | `P2_introduction.md`、`P2_references.md`、`status.md` |
-| P3 | `submissions/P3/` | `P3_project_description.md`、`status.md` |
-| P4 | `submissions/P4/` | `P4_results.md`、`P4_figure_table_placement.md`、`status.md` |
-| S1 | `submissions/S1/` | `S1_slide_outline.md`、`S1_speaker_notes.md`、`S1_rehearsal_log.md`、`status.md` |
-| S2 | `submissions/S2/` | `S2_demo_plan.md`、`S2_recording_notes.md`、`S2_qa_cards.md`、`status.md` |
-
-**只允许写自己目录里的文件**，完整规则见 [`submissions/README.md`](../submissions/README.md)。
+- 文件里已经按章节分好标题（Abstract / 1–4 / References / PPT 与演示）
+- 在**你负责的那节标题下面**写，**不要删改别人的段落**
+- 分工不是死的：谁有空谁多写，只要不互相覆盖
 
 ```bash
-git add submissions/<你的代号>
-git commit -m "<代号>: draft"
-git push origin HEAD:submissions/<你的代号>
+git pull
+# 编辑 submissions/report.md 里你那一节
+git add submissions/report.md
+git commit -m "draft: 第 2 节"
+git push
 ```
 
-> 分支名固定为 `submissions/<代号>`，**永远不要 push `main`**，也不要动 `src/`、`analysis/`、`results/`、`splits/`、`docs/`。
+> 如果 push 报冲突：先 `git pull` 再改；解决不了就把你那段发群里让 Kenneth 合并 —— **不要为了推上去删别人的内容**。
+> 除 `submissions/` 外，仓库其它目录（`src/`、`analysis/`、`results/`、`splits/`、`docs/`）一律只读。
 
 ## 7. PPT / 演示流程（S1、S2）
 
