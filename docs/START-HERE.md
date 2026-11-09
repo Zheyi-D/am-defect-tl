@@ -108,23 +108,23 @@
 3. 在 `CONTRIBUTIONS.md` §二 自己那一行填上"写了什么"
 4. 交给 P1 统稿（P1 负责最后一遍数字与格式核对）
 
-## 6.5 草稿提交区（就一个文件）
+## 6.5 工作记录（只记进度，不放正文）
 
-在线文档是协同写正式稿的地方；仓库里的 **[`submissions/report.md`](../submissions/report.md)** 是**草稿备份区**。
+仓库里有一个 **[`submissions/WORKLOG.md`](../submissions/WORKLOG.md)**：**流水账**，只记
+"谁在什么时候做了什么"（例如"今天录完了 90 秒 demo 视频"）。
 
-- 文件里已经按章节分好标题（Abstract / 1–4 / References / PPT 与演示）
-- 在**你负责的那节标题下面**写，**不要删改别人的段落**
-- 分工不是死的：谁有空谁多写，只要不互相覆盖
+- 报告正文在**金山文档**写，PPT 在**金山 PPT** 做 —— **不要**把正文/PPT 放进仓库
+- 每次做完一件事，在 `WORKLOG.md` **末尾追加**一条，不要改别人的记录
+- 好处：彼此知道进度、P1 统稿知道哪节还空着、期末个人贡献报告有素材
 
 ```bash
 git pull
-# 编辑 submissions/report.md 里你那一节
-git add submissions/report.md
-git commit -m "draft: 第 2 节"
+# 在 submissions/WORKLOG.md 末尾追加一段
+git add submissions/WORKLOG.md
+git commit -m "worklog: 写完了第 1 节初稿"
 git push
 ```
 
-> 如果 push 报冲突：先 `git pull` 再改；解决不了就把你那段发群里让 Kenneth 合并 —— **不要为了推上去删别人的内容**。
 > 除 `submissions/` 外，仓库其它目录（`src/`、`analysis/`、`results/`、`splits/`、`docs/`）一律只读。
 
 ## 7. PPT / 演示流程（S1、S2）

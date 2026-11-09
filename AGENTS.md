@@ -149,16 +149,16 @@ status:
 
 **加一个分析实验**：在 `analysis/` 新建模块，输出到 `results/`，并把产物格式登记到 `docs/RESULTS.md`。
 
-## 10.5 submissions/ —— 学生草稿区（单文件）
+## 10.5 submissions/ —— 工作记录（只记进度）
 
-`submissions/report.md` 是 6 位同学**唯一可写**的文件：已按章节分好标题，他们在自己那节下面写草稿。
+`submissions/WORKLOG.md` 是 6 位同学**唯一可写**的文件，用途只是记录"谁在什么时候做了什么"
+（如"写完了第 1 节初稿""录完了 demo 视频"）。**报告正文与 PPT 内容不在仓库里**。
 
 规则：
-1. 允许写：`submissions/report.md`（自己那节）、`submissions/README.md`
-2. **不得**修改 `src/`、`analysis/`、`tools/`、`tests/`、`results/`、`splits/`、`docs/`、`reports/`、根目录文档
-3. **不得**删改 `report.md` 里别人的段落（冲突时保留双方内容，由维护者合并）
-4. 正文数字只能引用 `results/leaderboard.csv` / `reports/tables/`，不许估算
-5. 图不复制进仓库，用图号引用（`results/figures/CATALOG.md`）
+1. 允许写：`submissions/WORKLOG.md`（**只在末尾追加**）、`submissions/README.md`
+2. **不得**修改或删除 `WORKLOG.md` 里已有的条目
+3. **不得**修改 `src/`、`analysis/`、`tools/`、`tests/`、`results/`、`splits/`、`docs/`、`reports/`、根目录文档
+4. 不要把报告正文、PPT 内容、图片、实验数据放进仓库
 
 ## 11. 贡献边界
 
