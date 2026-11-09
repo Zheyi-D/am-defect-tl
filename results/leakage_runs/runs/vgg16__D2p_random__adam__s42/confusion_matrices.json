@@ -33,5 +33,5 @@
       299
     ]
   ],
-  "note": "行=真实，列=预测，顺序同 labels"
+  "note": "rows = true labels, columns = predicted, same order as labels"
 }

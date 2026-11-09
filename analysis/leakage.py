@@ -1,22 +1,24 @@
-# Author: Kenneth | Task: 数据泄漏对照实验（自主贡献） | PR: 待提
-# Status: 本组原创实现
-"""数据泄漏对照实验：**随机划分 vs 按原图分组划分**。
+# Author: Kenneth | Task: data-leakage control experiment (voluntary contribution) | PR: pending
+# Status: original implementation
+"""Data-leakage control experiment: **random split vs. split grouped by source image**.
 
-背景（见 docs/DATA.md §5）：
-    作者把 D1（271 张真实照片）做数据增强得到 D2（3,017 张），然后随机划分 70/10/20。
-    同一张原图的多个增强副本因此可能同时出现在 train 与 test → 测试集含"训练集的近亲"
-    → 准确率被系统性高估。作者的增强文件名（aug_<k>_<随机数>）已丢失溯源信息，无法还原。
+Background (see docs/DATA.md §5):
+    The authors augmented D1 (271 real photographs) into D2 (3,017 images) and then split it randomly
+    70/10/20. Multiple augmented copies of the same source image can therefore land in both train and test
+    → the test set contains "close relatives" of training images → accuracy is systematically inflated.
+    The authors' augmented filenames (aug_<k>_<random>) lost their provenance, so it cannot be recovered.
 
-本实验的做法：
-    1. 从 D1 重新生成一份增强数据集 **D2′**，文件名里保留 `source_id`（原图名）→ 溯源可控
-    2. 对同一份 D2′ 生成两套划分：
-         - `D2p_random.csv`：随机分层 70/10/20（复刻作者的泄漏情形）
-         - `D2p_group.csv` ：按 `source_id` 分组划分（同一原图的增强副本不跨集合）
-    3. 同一模型、同一超参，分别在上面两套划分上训练 → 对比 test 指标
-    4. Δ(acc) = random − group，即"泄漏带来的虚高幅度"
+What this experiment does:
+    1. Regenerate an augmented dataset **D2′** from D1, keeping `source_id` (the source image name) in the
+       filenames → provenance is traceable
+    2. Produce two splits of the same D2′:
+         - `D2p_random.csv`: random stratified 70/10/20 (reproduces the authors' leakage situation)
+         - `D2p_group.csv` : grouped by `source_id` (copies of one source image never cross splits)
+    3. Train the same model with the same hyperparameters on both splits → compare test metrics
+    4. Δ(acc) = random − group, i.e. how much the leakage inflates the score
 
-用法：
-    python -m analysis.leakage --data-root <数据根> --out results \
+Usage:
+    python -m analysis.leakage --data-root <data root> --out results \
         --models vgg16,resnet50,mobilenet_v2 --per-image 11 --models-per-run 1
 """
 
@@ -34,9 +36,9 @@ SIZE = 224
 RATIO = (0.7, 0.1, 0.2)
 
 
-# ---------------------------------------------------------------- 增强 & 数据集
+# ---------------------------------------------------------------- augmentation & dataset
 def _augment(img, rng: random.Random):
-    """单张图的随机增强：旋转 / 翻转 / 亮度 / 对比度 / 缩放 / 噪声。"""
+    """Random augmentation of a single image: rotation / flip / brightness / contrast / scale / noise."""
     import numpy as np
     from PIL import Image, ImageEnhance
 
@@ -62,7 +64,7 @@ def _augment(img, rng: random.Random):
 
 
 def build_d2prime(data_root: Path, work_dir: Path, per_image: int = 11, seed: int = 42) -> Path:
-    """从 D1 生成 D2′（保留 source_id），返回「伪数据根」（其下有 data/D2p/...）。"""
+    """Generate D2′ from D1 (keeping source_id); return the "pseudo data root" (containing data/D2p/...)."""
     from PIL import Image
 
     d1_dir = Path(data_root) / "data" / "D1"
@@ -73,7 +75,7 @@ def build_d2prime(data_root: Path, work_dir: Path, per_image: int = 11, seed: in
     for label in LABELS:
         src_dir = d1_dir / label
         if not src_dir.is_dir():
-            raise FileNotFoundError(f"找不到 D1 目录：{src_dir}")
+            raise FileNotFoundError(f"D1 directory not found: {src_dir}")
         dst_dir = out_root / "data" / DATASET / label
         dst_dir.mkdir(parents=True, exist_ok=True)
         files = sorted(p for p in src_dir.iterdir() if p.is_file())
@@ -90,13 +92,13 @@ def build_d2prime(data_root: Path, work_dir: Path, per_image: int = 11, seed: in
                     "source_id": f.stem,
                 })
                 written += 1
-        print(f"[leakage] {label}: {len(files)} 张原图 → {len(files) * per_image} 张增强图", flush=True)
+        print(f"[leakage] {label}: {len(files)} source images → {len(files) * per_image} augmented images", flush=True)
 
-    print(f"[leakage] D2′ 生成完成：{written} 张 → {out_root / 'data' / DATASET}", flush=True)
+    print(f"[leakage] D2′ generated: {written} images → {out_root / 'data' / DATASET}", flush=True)
     return out_root
 
 
-# ---------------------------------------------------------------- 两套划分
+# ---------------------------------------------------------------- the two splits
 def _write_split(rows: list[dict], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as fh:
@@ -106,7 +108,7 @@ def _write_split(rows: list[dict], path: Path) -> None:
 
 
 def split_random(rows: list[dict], seed: int = 42) -> list[dict]:
-    """随机分层 70/10/20 —— 复刻作者的泄漏情形。"""
+    """Random stratified 70/10/20 — reproduces the authors' leakage situation."""
     by_label = defaultdict(list)
     for r in rows:
         by_label[r["label"]].append(r)
@@ -125,7 +127,7 @@ def split_random(rows: list[dict], seed: int = 42) -> list[dict]:
 
 
 def split_group(rows: list[dict], seed: int = 42) -> list[dict]:
-    """按 source_id 分组划分：同一原图的所有增强副本只进同一个集合。"""
+    """Grouped split by source_id: all augmented copies of one source image go to the same split."""
     by_label = defaultdict(lambda: defaultdict(list))
     for r in rows:
         by_label[r["label"]][r["source_id"]].append(r)
@@ -154,11 +156,11 @@ def _summary(rows: list[dict]) -> str:
 
 
 def subsample_train(rows: list[dict], fraction: float, seed: int = 42) -> list[dict]:
-    """只保留一部分训练样本，val/test 不动。
+    """Keep only part of the training samples; val/test are untouched.
 
-    目的：原始实验里两套划分都顶到 ~100%（天花板效应），看不出泄漏差异。
-    砍掉训练数据后准确率下降，泄漏才有空间显现。
-    对 group 划分，砍掉部分副本不会破坏"同源不跨集合"的性质。
+    Rationale: in the original experiment both splits hit ~100% (ceiling effect), hiding any leakage
+    difference. Trimming the training data lowers accuracy so the leakage effect has room to appear.
+    For the group split, dropping some copies does not break the "same source never crosses splits" property.
     """
     if fraction >= 1.0:
         return rows
@@ -176,10 +178,10 @@ def subsample_train(rows: list[dict], fraction: float, seed: int = 42) -> list[d
     return out
 
 
-# ---------------------------------------------------------------- 实验
+# ---------------------------------------------------------------- experiment
 def run_ablation(data_root: Path, splits_dir: Path, out_root: Path,
                  models: list[str], smoke: bool = False) -> list[dict]:
-    """同一模型、同一超参，分别在 random / group 两套划分上训练，对比 test 指标。"""
+    """Train the same model with the same hyperparameters on the random / group splits and compare test metrics."""
     from src.batch import DATASET_HP
     from src.train import load_config, run
 
@@ -210,7 +212,7 @@ def run_ablation(data_root: Path, splits_dir: Path, out_root: Path,
 
 
 def write_results(results: list[dict], out_root: Path, tag: str, train_fraction: float) -> Path:
-    """写 results/leakage_<tag>.csv（含随机划分与分组划分的差值）。"""
+    """Write results/leakage_<tag>.csv (with the random-minus-group deltas)."""
     by_model = defaultdict(dict)
     for r in results:
         by_model[r["model"]][r["split_mode"]] = r
@@ -247,12 +249,12 @@ def write_results(results: list[dict], out_root: Path, tag: str, train_fraction:
         w = csv.DictWriter(fh, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    print(f"[leakage] 写出 {out}", flush=True)
+    print(f"[leakage] wrote {out}", flush=True)
     return out
 
 
 def plot_results(csv_path: Path, out_dir: Path, tag: str) -> Path | None:
-    """画对照柱状图：每个模型两组准确率 + 差值。"""
+    """Draw a comparison bar chart: two accuracy bars per model plus the delta."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -290,14 +292,14 @@ def plot_results(csv_path: Path, out_dir: Path, tag: str) -> Path | None:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200)
     plt.close(fig)
-    print(f"[leakage] 写出 {out}", flush=True)
+    print(f"[leakage] wrote {out}", flush=True)
     return out
 
 
 def combine_and_plot(out_root: Path) -> None:
-    """把 results/leakage_<tag>.csv 合并成 results/leakage.csv，并画 2 面板对比图。
+    """Merge results/leakage_<tag>.csv into results/leakage.csv and draw a two-panel comparison figure.
 
-    纯 csv + matplotlib，不需要 torch / 数据，可以在本地直接跑。
+    Pure csv + matplotlib: no torch or data needed, so it runs locally.
     """
     import csv as _csv
 
@@ -309,7 +311,7 @@ def combine_and_plot(out_root: Path) -> None:
 
     parts = [p for p in sorted(Path(out_root).glob("leakage_*.csv")) if p.name != "leakage.csv"]
     if not parts:
-        raise FileNotFoundError(f"{out_root} 下没有 leakage_*.csv")
+        raise FileNotFoundError(f"no leakage_*.csv under {out_root}")
     rows = []
     for p in parts:
         with p.open(encoding="utf-8") as fh:
@@ -321,7 +323,7 @@ def combine_and_plot(out_root: Path) -> None:
         w = _csv.DictWriter(fh, fieldnames=list(rows[0].keys()), lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    print(f"[leakage] 合并写出 {out_csv}（{len(rows)} 行）", flush=True)
+    print(f"[leakage] merged into {out_csv} ({len(rows)} rows)", flush=True)
 
     settings = sorted({r["setting"] for r in rows})
     fig, axes = plt.subplots(1, len(settings), figsize=(5.8 * len(settings), 3.9), sharey=True)
@@ -350,21 +352,21 @@ def combine_and_plot(out_root: Path) -> None:
     out_fig.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_fig, dpi=200)
     plt.close(fig)
-    print(f"[leakage] 写出 {out_fig}", flush=True)
+    print(f"[leakage] wrote {out_fig}", flush=True)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data-root", type=Path, default=None,
-                    help="数据根目录（--combine 模式下可省略）")
+                    help="data root directory (optional in --combine mode)")
     ap.add_argument("--combine", action="store_true",
-                    help="只合并已有 leakage_*.csv 并画对比图（纯本地，不需要 GPU/数据）")
+                    help="only merge existing leakage_*.csv files and draw the comparison figure (local, no GPU/data)")
     ap.add_argument("--out", type=Path, default=Path("results"))
-    ap.add_argument("--work-dir", type=Path, default=None, help="D2′ 与划分的存放目录")
+    ap.add_argument("--work-dir", type=Path, default=None, help="directory for D2′ and the splits")
     ap.add_argument("--models", default="vgg16,resnet50,mobilenet_v2")
     ap.add_argument("--per-image", type=int, default=11)
     ap.add_argument("--train-fraction", type=float, default=1.0,
-                    help="只保留这部分训练样本（<1 用于打破准确率天花板，让泄漏效应显现）")
+                    help="keep only this fraction of training samples (<1 breaks the accuracy ceiling so leakage shows)")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
 
@@ -373,15 +375,15 @@ def main() -> None:
         combine_and_plot(out_root)
         return
     if args.data_root is None:
-        raise SystemExit("非 --combine 模式必须提供 --data-root")
+        raise SystemExit("--data-root is required outside --combine mode")
     work_dir = Path(args.work_dir) if args.work_dir else out_root / "leakage_work"
     splits_dir = work_dir / "splits"
     models = [m.strip() for m in args.models.split(",") if m.strip()]
 
-    # 1) 生成 D2′
+    # 1) generate D2′
     d2p_root = build_d2prime(args.data_root, work_dir, args.per_image)
 
-    # 2) 两套划分
+    # 2) the two splits
     import csv as _csv
     rows = []
     for label in LABELS:
@@ -397,17 +399,17 @@ def main() -> None:
     tag = "full" if args.train_fraction >= 1.0 else f"small{int(round(args.train_fraction * 100))}"
     _write_split(rnd, splits_dir / f"{DATASET}_random.csv")
     _write_split(grp, splits_dir / f"{DATASET}_group.csv")
-    print(f"[leakage] 设定={tag}  train_fraction={args.train_fraction}", flush=True)
-    print(f"[leakage] random 划分: {_summary(rnd)}", flush=True)
-    print(f"[leakage] group  划分: {_summary(grp)}", flush=True)
+    print(f"[leakage] setting={tag}  train_fraction={args.train_fraction}", flush=True)
+    print(f"[leakage] random split: {_summary(rnd)}", flush=True)
+    print(f"[leakage] group  split: {_summary(grp)}", flush=True)
 
-    # 3) 训练对比
+    # 3) train and compare
     results = run_ablation(d2p_root, splits_dir, out_root / f"leakage_runs_{tag}", models, smoke=args.smoke)
 
-    # 4) 汇总 + 画图
+    # 4) aggregate + plot
     csv_path = write_results(results, out_root, tag, args.train_fraction)
     plot_results(csv_path, out_root / "figures", tag)
-    print("[leakage] 完成", flush=True)
+    print("[leakage] done", flush=True)
 
 
 if __name__ == "__main__":

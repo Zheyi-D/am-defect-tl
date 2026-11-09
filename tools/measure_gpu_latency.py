@@ -1,17 +1,18 @@
-# Author: Kenneth | Task: T3 的 GPU 时延补测 | PR: 待提
-# Status: 本组原创实现
-"""在 GPU 上测 11 个骨干的单张推理时延，补全 results/efficiency.csv 的 gpu_ms_per_image 列。
+# Author: Kenneth | Task: supplementary GPU latency measurements for T3 | PR: to be opened
+# Status: original implementation by this group
+"""Measure single-image inference latency of the 11 backbones on GPU to fill the gpu_ms_per_image column of results/efficiency.csv.
 
-为什么单独写脚本：
-    `analysis/efficiency.py`（jellyfishhamburger 写的）负责参数量 / FLOPs / CPU 时延，
-    其 GPU 列在本地无 GPU 的环境下写 N/A。本脚本只做 GPU 那一段，产物单独一个 csv，
-    再由本地合并进 efficiency.csv —— 这样两边的测量互不覆盖，来源清晰。
+Why a separate script:
+    `analysis/efficiency.py` (written by jellyfishhamburger) covers parameter count, FLOPs and CPU latency,
+    but its GPU column reads N/A on a machine without a GPU. This script handles only the GPU part and
+    writes its own csv, which is then merged into efficiency.csv locally -- so the two sets of
+    measurements never overwrite each other and the provenance stays clear.
 
-测法：
-    每个骨干 warmup 后重复 iters 次单张前向（batch=1, 224×224），用 CUDA event 计时，
-    取中位数（比均值抗抖动）。
+How:
+    After warmup, repeat iters single-image forward passes per backbone (batch=1, 224x224), time them
+    with CUDA events and take the median (more robust against jitter than the mean).
 
-用法：
+Usage:
     python tools/measure_gpu_latency.py --iters 50 --out /kaggle/working/results/efficiency_gpu.csv
 """
 
@@ -79,7 +80,7 @@ def main() -> None:
     from src.models import TransferModel
 
     if not torch.cuda.is_available():
-        raise SystemExit("没有可用 GPU；本脚本只能在 CUDA 环境运行")
+        raise SystemExit("no GPU available; this script can only run in a CUDA environment")
 
     gpu_name = torch.cuda.get_device_name(0)
     models = MODELS if args.models == "all" else [m.strip() for m in args.models.split(",")]
@@ -105,7 +106,7 @@ def main() -> None:
         w = csv.DictWriter(fh, fieldnames=fields, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-    print(f"[gpu] 写出 {out}（{len(rows)} 行）", flush=True)
+    print(f"[gpu] wrote {out} ({len(rows)} rows)", flush=True)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,11 @@
-# Author: 组长 + agent | Task: 数据集与变换 | PR: 待提
-# Status: 本组原创实现。参考：torchvision.transforms 文档（仅调用）
-"""按 splits csv 读取图片，返回 (image_tensor, label)。
+# Author: Lead + agent | Task: dataset and transforms | PR: TBD
+# Status: original implementation by this team. Reference: torchvision.transforms docs (calls only)
+"""Read images according to the splits csv and return (image_tensor, label).
 
-预处理对齐作者实现：直接 resize 到 224×224（忽略长宽比），再按 ImageNet 均值方差归一化。
-（作者用 Keras + /255，我们用 torchvision 标准归一化，差异写进报告 limitations。）
+Preprocessing mirrors the authors' implementation: resize directly to 224x224 (ignoring aspect ratio),
+then normalize with the ImageNet mean/std.
+(The authors use Keras + /255; we use the standard torchvision normalization, and the difference is
+documented in the report's limitations section.)
 """
 
 from __future__ import annotations
@@ -38,7 +40,7 @@ class AMDefectDataset(Dataset):
     def __init__(self, rows: list[dict], data_root: Path, input_size: int = 224,
                  train: bool = False, augment: bool = False, limit: int | None = None,
                  cache_root: Path | None = None):
-        from PIL import Image  # noqa: F401  (确认 Pillow 可用)
+        from PIL import Image  # noqa: F401  (confirms that Pillow is importable)
 
         self.rows = rows[:limit] if limit else rows
         self.data_root = Path(data_root)
@@ -46,7 +48,7 @@ class AMDefectDataset(Dataset):
         self.transform = build_transform(input_size, train, augment)
 
     def _resolve(self, rel_path: str) -> Path:
-        """data/D1/defect/x.JPG → 缓存路径 <cache>/D1/defect/x.jpg（若提供了缓存根）。"""
+        """data/D1/defect/x.JPG -> cache path <cache>/D1/defect/x.jpg (when a cache root is given)."""
         rel = str(rel_path).replace("\\", "/")
         if self.cache_root is None:
             return self.data_root / rel

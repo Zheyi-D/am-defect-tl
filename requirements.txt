@@ -1,29 +1,29 @@
-# 本地环境依赖。Kaggle Notebook 已预装 torch/torchvision，只需额外装少数包。
-# CPU-only 分析任务（T1–T5）用到的都在这里；GPU 训练只额外需要 Kaggle 预装的包。
+# Local environment dependencies. The Kaggle Notebook already ships torch/torchvision, so only a few extra packages are needed.
+# Everything used by the CPU-only analysis tasks (T1-T5) is here; GPU training only needs the packages already preinstalled on Kaggle.
 
-# --- 深度学习 ---
+# --- Deep learning ---
 torch>=2.2
 torchvision>=0.17
-timm>=0.9            # src/models.py 用 timm 加载骨干（torchvision 缺 NASNet / Xception / InceptionResNetV2）
+timm>=0.9            # src/models.py uses timm to load the backbones (torchvision lacks NASNet / Xception / InceptionResNetV2)
 
-# --- 数据与指标 ---
+# --- Data and metrics ---
 numpy>=1.26
 pandas>=2.2
 scikit-learn>=1.4
 Pillow>=10.0
 opencv-python-headless>=4.9
 
-# --- 配置与日志 ---
+# --- Configuration and logging ---
 PyYAML>=6.0
 tqdm>=4.66
 
-# --- 可视化 ---
+# --- Visualization ---
 matplotlib>=3.8
 seaborn>=0.13
 
-# --- 可解释性（T4；已登记在 NOTICE.md）---
-lime>=0.2.0.1        # analysis/lime_explain.py；会带入 scikit-image
-# grad-cam>=1.5.0    # 未使用：CAM 算法在 analysis/gradcam.py 自行实现
+# --- Explainability (T4; recorded in NOTICE.md) ---
+lime>=0.2.0.1        # analysis/lime_explain.py; pulls in scikit-image
+# grad-cam>=1.5.0    # unused: the CAM algorithm is implemented in analysis/gradcam.py
 
 # --- demo ---
-gradio>=4.0          # analysis/demo_app.py 的现场演示界面
+gradio>=4.0          # live demo UI for analysis/demo_app.py

@@ -1,7 +1,7 @@
 name: ci
 
-# 只做两件事：语法能编译、契约测试通过。
-# 故意不装 torch：保证 8 个新手也不会因为环境问题被 CI 卡住。
+# Two checks only: everything compiles, and the contract tests pass.
+# torch is intentionally NOT installed: CI must stay fast and environment-proof.
 
 on:
   push:

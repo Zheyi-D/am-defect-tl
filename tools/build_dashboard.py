@@ -1,17 +1,19 @@
-# Author: Leiman Pan + agent | Task: 生成结果看板（单文件 HTML） | PR: 待提
-# Status: 本组原创实现。只读 results/ 下的交付物，不改任何实验结果。
-"""把 results/ 里的 66 个 run 汇总成一个自包含的看板页面。
+# Author: Leiman Pan + agent | Task: build the results dashboard (single-file HTML) | PR: to be opened
+# Status: original implementation by this group. Reads deliverables under results/ only; never changes any experimental result.
+"""Aggregate the 66 runs under results/ into one self-contained dashboard page.
 
-用法：
-    python tools/build_dashboard.py                # → docs/index.html
+Usage:
+    python tools/build_dashboard.py                # -> docs/index.html
     python tools/build_dashboard.py --out x.html
 
-设计约束：
-  1. 页面不依赖任何 CDN / 外链字体（答辩现场可能断网），所有数据与脚本内嵌；
-  2. 数据只从 results/runs/*/metrics.json、confusion_matrices.json、train_log.csv
-     与 results/leaderboard.csv 读取，不重算指标，避免"看板和交付物不一致"；
-  3. 模板与数据分离：tools/dashboard/template.html 里的 __DATA_JSON__ 被替换，
-     重复运行幂等（不会叠加注入）。
+Design constraints:
+  1. The page depends on no CDN and no external font (the defence venue may have no network), so all
+     data and scripts are inlined;
+  2. Data is read only from results/runs/*/metrics.json, confusion_matrices.json, train_log.csv and
+     results/leaderboard.csv; metrics are never recomputed, so the dashboard and the deliverables
+     cannot disagree;
+  3. Template and data are kept separate: __DATA_JSON__ in tools/dashboard/template.html is replaced,
+     and reruns are idempotent (the injection is never stacked).
 """
 
 from __future__ import annotations
@@ -43,7 +45,7 @@ def fnum(value, default=None):
 
 
 def load_curve(path: Path) -> dict:
-    """train_log.csv → 4 条曲线（epoch 为 x 轴）。"""
+    """Turn train_log.csv into 4 curves (epoch on the x axis)."""
     if not path.exists():
         return {"ep": [], "tr_acc": [], "va_acc": [], "tr_loss": [], "va_loss": []}
     rows = read_csv(path)
@@ -125,7 +127,7 @@ def main() -> None:
 
     runs = build_runs()
     if not runs:
-        raise SystemExit("results/runs/ 下没有可用的 metrics.json")
+        raise SystemExit("no usable metrics.json under results/runs/")
     summarise(runs)
 
     payload = {
@@ -140,7 +142,7 @@ def main() -> None:
 
     html = TEMPLATE.read_text(encoding="utf-8")
     if "__DATA_JSON__" not in html:
-        raise SystemExit("模板缺少 __DATA_JSON__ 占位符")
+        raise SystemExit("template is missing the __DATA_JSON__ placeholder")
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html.replace("__DATA_JSON__", data_js), encoding="utf-8")

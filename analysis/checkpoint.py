@@ -1,18 +1,19 @@
-# Author: Leiman Pan + agent | Task: checkpoint 复原（推理 / Grad-CAM 共用） | PR: 待提
-# Status: 本组原创实现。解决"存档的分类头与 src/models.py 当前定义不一致"的问题。
-"""从 results/runs/<run_id>/model.pt 复原一个可推理的模型。
+# Author: Leiman Pan + agent | Task: checkpoint restoration (shared by inference / Grad-CAM) | PR: pending
+# Status: original implementation. Solves the mismatch between archived heads and the current src/models.py definition.
+"""Restore a runnable model from results/runs/<run_id>/model.pt.
 
-为什么单独写一个文件：
-    仓库里 5 个 model.pt 只保存了分类头（骨干权重是 ImageNet 预训练，随时可从 timm 重建）。
-    但存档时用的是"全局平均池化"版头部（fc1 输入维度 = 通道数 C），
-    而 src/models.py 的 PaperHead 在特征图 ≥ 4×4 时用 AvgPool2d(4)（fc1 输入维度 = C×16）。
-    直接用 PaperHead 载入会抛：
+Why a separate module:
+    The 5 model.pt files in the repo store only the classification head (the backbone is ImageNet-pretrained
+    and can be rebuilt from timm at any time). But the archives were saved with a "global average pooling"
+    head (fc1 input dimension = number of channels C), whereas PaperHead in src/models.py uses
+    AvgPool2d(4) when the feature map is at least 4×4 (fc1 input dimension = C×16).
+    Loading a checkpoint straight into PaperHead raises:
         RuntimeError: size mismatch for head.fc1.weight: copying a param with shape
         torch.Size([64, 512]) ... current model has torch.Size([64, 8192])
-    所以这里根据 checkpoint 里 fc1.weight 的真实形状选择池化方式，
-    两种存档都能载入，且不需要改 src/models.py（那是地基组的共享文件）。
+    So we pick the pooling mode from the real fc1.weight shape in the checkpoint; both archive formats
+    load correctly, and src/models.py (a shared file owned by the foundation team) stays untouched.
 
-用法：
+Usage:
     from analysis.checkpoint import load_model, list_checkpoints
     model, ckpt = load_model("results/runs/vgg16__D1__adam__s42", device="cpu")
 """
@@ -28,7 +29,7 @@ from src.models import TransferModel
 
 
 class GlobalPoolHead(nn.Module):
-    """与存档一致的分类头：全局平均池化 → Flatten → Linear → ReLU → Dropout → Linear。"""
+    """Head matching the archives: global average pooling → Flatten → Linear → ReLU → Dropout → Linear."""
 
     def __init__(self, in_ch: int, num_classes: int = 2, dense_units: int = 64,
                  dropout: float = 0.5):
@@ -46,15 +47,15 @@ class GlobalPoolHead(nn.Module):
 
 def load_model(run_dir: str | Path, device: str | torch.device = "cpu",
                pretrained: bool = True) -> tuple[TransferModel, dict]:
-    """复原模型。返回 (model, checkpoint 原始 dict)。
+    """Restore a model. Returns (model, raw checkpoint dict).
 
-    pretrained=True 会从 timm 拉 ImageNet 权重（首次需要联网，之后有缓存）；
-    demo 前请先跑一次 `python -m analysis.demo_app --warmup` 把权重下载好。
+    pretrained=True pulls ImageNet weights from timm (needs network the first time, cached afterwards);
+    before a demo run `python -m analysis.demo_app --warmup` once to download the weights.
     """
     run_dir = Path(run_dir)
     ckpt_path = run_dir / "model.pt"
     if not ckpt_path.exists():
-        raise FileNotFoundError(f"{ckpt_path} 不存在（权重不进 Git 的 run 无法复原）")
+        raise FileNotFoundError(f"{ckpt_path} does not exist (runs without weights in Git cannot be restored)")
 
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     model = TransferModel(
@@ -78,9 +79,9 @@ def load_model(run_dir: str | Path, device: str | torch.device = "cpu",
         head = model.head
     else:
         raise RuntimeError(
-            f"分类头形状无法匹配：存档 fc1={tuple(fc1_w.shape)}，"
-            f"特征通道 C={in_ch}，当前 PaperHead 期望 {model.head.fc1.in_features}。"
-            "请检查 checkpoint 是否来自另一个模型。")
+            f"head shape mismatch: archived fc1={tuple(fc1_w.shape)}, "
+            f"feature channels C={in_ch}, current PaperHead expects {model.head.fc1.in_features}. "
+            "Check whether the checkpoint comes from a different model.")
 
     head.load_state_dict(state)
     model.head = head
@@ -89,7 +90,7 @@ def load_model(run_dir: str | Path, device: str | torch.device = "cpu",
 
 
 def list_checkpoints(runs_dir: str | Path = "results/runs") -> list[Path]:
-    """所有带 model.pt 的 run 目录，按数据集/模型名排序。"""
+    """All run directories containing model.pt, sorted by dataset/model name."""
     runs_dir = Path(runs_dir)
     if not runs_dir.exists():
         return []
@@ -97,7 +98,7 @@ def list_checkpoints(runs_dir: str | Path = "results/runs") -> list[Path]:
 
 
 def run_meta(run_dir: str | Path) -> dict:
-    """从同目录 metrics.json 读展示用元信息（没有就返回空 dict）。"""
+    """Read display metadata from metrics.json in the same directory (empty dict if absent)."""
     import json
 
     p = Path(run_dir) / "metrics.json"

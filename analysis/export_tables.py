@@ -1,20 +1,22 @@
-# Author: jellyfishhamburger | Task: T2 报告表格导出 | PR: 待提
-# Status: 本组原创实现。只读 results/ 与 splits/，不修改任何实验结果。
-"""把实验结果导出成可以直接粘进报告的表格（Markdown + LaTeX / booktabs）。T2
+# Author: jellyfishhamburger | Task: T2 report table export | PR: pending
+# Status: original implementation. Reads results/ and splits/ only; never modifies experimental results.
+"""Export experimental results as report-ready tables (Markdown + LaTeX / booktabs). T2
 
-输出：
-    reports/tables/table1_datasets.md/.tex      数据集体量
-    reports/tables/table2_d1_results.md/.tex    D1 全部 33 行
-    reports/tables/table3_d2_results.md/.tex    D2 全部 33 行
-    reports/tables/table4_delta.md/.tex         与论文的 Δaccuracy 汇总
-    reports/tables/table5_efficiency.md/.tex    效率（需要先跑 T3；没有则标注 pending）
+Outputs:
+    reports/tables/table1_datasets.md/.tex      dataset composition
+    reports/tables/table2_d1_results.md/.tex    all 33 D1 runs
+    reports/tables/table3_d2_results.md/.tex    all 33 D2 runs
+    reports/tables/table4_delta.md/.tex         Δaccuracy summary versus the paper
+    reports/tables/table5_efficiency.md/.tex    efficiency (needs T3 first; marked pending if absent)
+    reports/tables/table6_leakage.md/.tex       leakage control experiment (random vs. source-grouped split)
 
-用法：
-    python -m analysis.export_tables            # 生成全部
-    python -m analysis.export_tables --check    # 生成后逐格核对 leaderboard.csv
+Usage:
+    python -m analysis.export_tables            # generate everything
+    python -m analysis.export_tables --check    # generate, then verify every cell against the CSVs
 
-约束：所有数字读自 results/leaderboard.csv、results/efficiency.csv、splits/*.csv；
-      论文值读自 leaderboard.csv 的 paper_acc / paper_f1 列（源头是 docs/paper_results.csv）。
+Constraints: all numbers are read from results/leaderboard.csv, results/efficiency.csv,
+             results/leakage.csv and splits/*.csv; reported paper values are read from the paper_acc /
+             paper_f1 columns of leaderboard.csv (sourced from docs/paper_results.csv).
 """
 
 from __future__ import annotations
@@ -73,7 +75,7 @@ def to_markdown(title: str, header: list[str], rows: list[list[str]], note: str 
 
 
 def tex_cell(value) -> str:
-    """LaTeX 单元格转义：千分位逗号转 \\, 其余特殊字符转义。"""
+    """Escape a LaTeX cell: thousands-separator commas become \\, and other special characters are escaped."""
     s = str(value)
     if re.fullmatch(r"\d{1,3}(,\d{3})+", s):
         return s.replace(",", "\\,")
@@ -112,7 +114,7 @@ def to_latex(title: str, label: str, header: list[str], rows: list[list[str]],
 
 def write_pair(stem: str, title: str, label: str, header: list[str], rows: list[list[str]],
                note_md: str = "", note_tex: str = "", align: str | None = None) -> None:
-    # newline="\n"：Windows 上默认会把换行转成 CRLF，导致和仓库里（LF）不一致、每次跑都产生 diff
+    # newline="\n": Windows would otherwise write CRLF, which differs from the repo (LF) and creates a diff on every run
     (OUT / f"{stem}.md").write_text(to_markdown(title, header, rows, note_md),
                                     encoding="utf-8", newline="\n")
     (OUT / f"{stem}.tex").write_text(to_latex(title, label, header, rows, note_tex, align),
@@ -121,7 +123,7 @@ def write_pair(stem: str, title: str, label: str, header: list[str], rows: list[
 
 # ---------------------------------------------------------------- tables
 def table1(rows: list[dict]) -> None:
-    """Table 1 — 数据集体量（计数直接来自 splits/*.csv）。"""
+    """Table 1 — dataset composition (counts come straight from splits/*.csv)."""
     body = []
     for ds, resolution, source in [("D1", "5184×3456", "Original photographs"),
                                    ("D2", "128×128", "Authors' augmented set")]:
@@ -189,7 +191,7 @@ def meta_n_test(ds: str) -> str:
 
 
 def table4(rows: list[dict]) -> None:
-    """Table 4 — 与论文的 Δaccuracy（同一优化器 Adam 对齐）。"""
+    """Table 4 — Δaccuracy versus the paper (aligned on the same optimizer, Adam)."""
     body = []
     for m in model_order(rows):
         cells = [DISPLAY.get(m, m)]
@@ -220,7 +222,7 @@ def table4(rows: list[dict]) -> None:
 
 
 def table5() -> None:
-    """Table 5 — 效率（T3 产物；没有就写 pending）。"""
+    """Table 5 — efficiency (T3 artifact; write pending if absent)."""
     p = RESULTS / "efficiency.csv"
     if not p.exists():
         write_pair("table5_efficiency", "Table 5 — Inference cost (pending)",
@@ -246,27 +248,81 @@ def table5() -> None:
                align="lrrrr")
 
 
+def table6() -> None:
+    """Table 6 — leakage control experiment (random vs. source-grouped split on D2')."""
+    p = RESULTS / "leakage.csv"
+    if not p.exists():
+        write_pair("table6_leakage", "Table 6 — Leakage control experiment (pending)",
+                   "tab:leakage",
+                   ["Setting", "Train frac.", "Model", "Acc. random", "Acc. grouped", "Δ acc.",
+                    "F1 random", "F1 grouped", "Δ F1", "AUC random", "AUC grouped",
+                    "Train n random", "Train n grouped"],
+                   [["pending", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"]],
+                   note_md="> Pending: run `python -m analysis.leakage --combine` to produce results/leakage.csv.",
+                   note_tex="Pending: run analysis.leakage --combine.")
+        return
+
+    rows = read_csv(p)
+    setting_rank = {"full": 0, "small15": 1}
+    rows.sort(key=lambda r: (setting_rank.get(r["setting"], 9), r["setting"],
+                             ORDER.index(r["model"]) if r["model"] in ORDER else 99, r["model"]))
+
+    body = []
+    for r in rows:
+        body.append([
+            r["setting"],
+            f"{float(r['train_fraction']) * 100:.0f}%",
+            DISPLAY.get(r["model"], r["model"]),
+            f"{float(r['accuracy_random']):.4f}",
+            f"{float(r['accuracy_group']):.4f}",
+            f"{float(r['delta_accuracy']):+.4f}",
+            f"{float(r['f1_random']):.4f}",
+            f"{float(r['f1_group']):.4f}",
+            f"{float(r['delta_f1']):+.4f}",
+            f"{float(r['auc_random']):.4f}",
+            f"{float(r['auc_group']):.4f}",
+            f"{int(float(r['n_train_random'])):,}",
+            f"{int(float(r['n_train_group'])):,}",
+        ])
+    write_pair("table6_leakage",
+               "Table 6 — Leakage control experiment on a re-augmented dataset (D2'): "
+               "random split versus source-grouped split, under two training-set regimes.",
+               "tab:leakage",
+               ["Setting", "Train frac.", "Model", "Acc. random", "Acc. grouped", "Δ acc.",
+                "F1 random", "F1 grouped", "Δ F1", "AUC random", "AUC grouped",
+                "Train n random", "Train n grouped"],
+               body,
+               note_md="> D2' is re-augmented from D1 with source IDs preserved, so every image can be traced back "
+                       "to its source photograph. n_test = 596 in every row; Δ = random − source-grouped "
+                       "(a positive Δ means the leak-prone split scores higher). The full-data regime already sits "
+                       "at the accuracy ceiling, which is why the 15%-training regime is reported as well.",
+               note_tex="D2' is re-augmented from D1 with source IDs preserved. Test n = 596 for every row; "
+                        "Δ = random − source-grouped; the 15%-training regime is added because the full-data "
+                        "regime is at the accuracy ceiling.",
+               align="lllrrrrrrrrrr")
+
+
 # ---------------------------------------------------------------- verification
 def verify() -> int:
-    """逐格核对：把生成的 Markdown 表格解析回来，和 leaderboard.csv 比较。"""
+    """Cell-by-cell check: parse the generated Markdown tables back and compare them with the source CSVs."""
     rows = read_csv(RESULTS / "leaderboard.csv")
     bad = 0
     checked = 0
     for ds, stem in (("D1", "table2_d1_results"), ("D2", "table3_d2_results")):
         p = OUT / f"{stem}.md"
         if not p.exists():
-            print(f"[check] 缺少 {p.name}")
+            print(f"[check] missing {p.name}")
             bad += 1
             continue
         lines = [l for l in p.read_text(encoding="utf-8").splitlines() if l.startswith("| ")]
-        for line in lines[2:]:
+        for line in lines[1:]:
             cells = [c.strip() for c in line.strip("|").split("|")]
             model_cn, opt = cells[0], cells[1]
             model = next((k for k, v in DISPLAY.items() if v == model_cn), model_cn)
             r = next((x for x in rows if x["model"] == model and x["dataset"] == ds
                       and OPT_LABEL[x["optimizer"]] == opt), None)
             if r is None:
-                print(f"[check] 表里有、csv 里没有: {model}/{ds}/{opt}")
+                print(f"[check] row in table but not in csv: {model}/{ds}/{opt}")
                 bad += 1
                 continue
             pairs = [("accuracy", 2), ("precision", 3), ("recall", 4), ("f1", 5),
@@ -274,27 +330,64 @@ def verify() -> int:
             for key, idx in pairs:
                 checked += 1
                 if cells[idx] != f"{float(r[key]):.4f}":
-                    print(f"[check] 不一致 {model}/{ds}/{opt} {key}: 表 {cells[idx]} vs csv {float(r[key]):.4f}")
+                    print(f"[check] mismatch {model}/{ds}/{opt} {key}: table {cells[idx]} vs csv {float(r[key]):.4f}")
                     bad += 1
-    print(f"[check] 核对 {checked} 个数值，{bad} 处不一致")
+
+    leak_path = RESULTS / "leakage.csv"
+    leak_md = OUT / "table6_leakage.md"
+    if leak_path.exists():
+        if not leak_md.exists():
+            print(f"[check] missing {leak_md.name}")
+            bad += 1
+        else:
+            leak_rows = read_csv(leak_path)
+            lines = [l for l in leak_md.read_text(encoding="utf-8").splitlines() if l.startswith("| ")]
+            for line in lines[1:]:
+                cells = [c.strip() for c in line.strip("|").split("|")]
+                setting, model_disp = cells[0], cells[2]
+                model = next((k for k, v in DISPLAY.items() if v == model_disp), model_disp)
+                r = next((x for x in leak_rows if x["setting"] == setting and x["model"] == model), None)
+                if r is None:
+                    print(f"[check] row in table but not in leakage.csv: {model}/{setting}")
+                    bad += 1
+                    continue
+                pairs = [("accuracy_random", 3, "fixed"), ("accuracy_group", 4, "fixed"),
+                         ("delta_accuracy", 5, "signed"), ("f1_random", 6, "fixed"),
+                         ("f1_group", 7, "fixed"), ("delta_f1", 8, "signed"),
+                         ("auc_random", 9, "fixed"), ("auc_group", 10, "fixed"),
+                         ("n_train_random", 11, "int"), ("n_train_group", 12, "int")]
+                for key, idx, kind in pairs:
+                    checked += 1
+                    if kind == "int":
+                        expected = f"{int(float(r[key])):,}"
+                    elif kind == "signed":
+                        expected = f"{float(r[key]):+.4f}"
+                    else:
+                        expected = f"{float(r[key]):.4f}"
+                    if cells[idx] != expected:
+                        print(f"[check] mismatch {model}/{setting} {key}: table {cells[idx]} vs csv {expected}")
+                        bad += 1
+
+    print(f"[check] {checked} numeric values checked, {bad} mismatches")
     return 0 if bad == 0 else 1
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--check", action="store_true", help="生成后逐格核对 leaderboard.csv")
+    ap.add_argument("--check", action="store_true", help="after generating, verify every cell against the CSVs")
     args = ap.parse_args()
 
     OUT.mkdir(parents=True, exist_ok=True)
     rows = read_csv(RESULTS / "leaderboard.csv")
     if not rows:
-        raise SystemExit("results/leaderboard.csv 为空")
+        raise SystemExit("results/leaderboard.csv is empty")
 
     table1(rows)
     results_table(rows, "D1", 2, "table2_d1_results")
     results_table(rows, "D2", 3, "table3_d2_results")
     table4(rows)
     table5()
+    table6()
 
     j = len(list(OUT.glob("*.md")))
     print(f"[tables] wrote {j} markdown + {len(list(OUT.glob('*.tex')))} latex files → {OUT}")

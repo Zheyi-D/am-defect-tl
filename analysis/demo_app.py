@@ -1,20 +1,20 @@
-# Author: Leiman Pan + agent | Task: 现场演示界面（Gradio） | PR: 待提
-# Status: 基于 Gradio 框架（开源，见 NOTICE.md），界面逻辑与推理封装为本组编写
-"""现场演示：上传一张 3D 打印件照片 → defect / nondefect 概率 + Grad-CAM 热力图。
+# Author: Leiman Pan + agent | Task: live demo UI (Gradio) | PR: pending
+# Status: built on the Gradio framework (open source, see NOTICE.md); UI logic and inference wrapper written by this group
+"""Live demo: upload a photo of a 3D-printed part → defect / nondefect probability + Grad-CAM heatmap.
 
-用法：
-    python -m analysis.demo_app                      # 打开浏览器界面
-    python -m analysis.demo_app --warmup             # 只预热权重（演讲前必做一次）
-    python -m analysis.demo_app --selftest           # 不开界面，跑通一次推理就退出
+Usage:
+    python -m analysis.demo_app                      # open the browser UI
+    python -m analysis.demo_app --warmup             # only pre-load the weights (do this before a talk)
+    python -m analysis.demo_app --selftest           # no UI; run one inference pass and exit
     python -m analysis.demo_app --model vgg16 --share
-    python -m analysis.demo_app --host 0.0.0.0       # 让同一 Wi-Fi 的手机也能打开
+    python -m analysis.demo_app --host 0.0.0.0       # let phones on the same Wi-Fi connect
 
-两个环境变量（演讲现场没网时用）：
-    HF_HUB_OFFLINE=1        禁止 timm 去 HuggingFace 下载骨干（必须提前 --warmup）
+Two environment variables (for a venue without network):
+    HF_HUB_OFFLINE=1        stop timm from downloading backbones from HuggingFace (run --warmup in advance)
     GRADIO_ANALYTICS_ENABLED=False
 
-只有 D1 + Adam 的 5 个 run 保存了 model.pt，所以界面只提供这 5 个模型；
-其余 61 个 run 只有 metrics.json，不能推理——这一点写在界面说明里，避免被问倒。
+Only the 5 D1 + Adam runs have a model.pt, so the UI offers only those 5 models; the other 61 runs have
+metrics.json only and cannot run inference — this is stated in the UI notes to avoid surprises.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import os
 from pathlib import Path
 
 os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
-# Windows 上常见的系统代理（v2rayN 等）会把 127.0.0.1 也走代理，导致 Gradio 自查 503
+# Common Windows system proxies (v2rayN etc.) also route 127.0.0.1, which makes Gradio's self-check return 503
 for _k in ("NO_PROXY", "no_proxy"):
     _v = os.environ.get(_k, "")
     if "127.0.0.1" not in _v:
@@ -42,7 +42,7 @@ PRETTY = {
     "nasnet_large": "NASNet-Large",
 }
 
-# 模型缓存：首次使用时载入，之后常驻（CPU 上一次前进约 0.2–1.5 s）
+# Model cache: loaded on first use, then kept resident (one forward pass on CPU takes ~0.2–1.5 s)
 _CACHE: dict[str, object] = {}
 
 
@@ -60,7 +60,7 @@ def label_of(run_dir: Path) -> str:
     opt = (parts[2] if len(parts) > 2 else "?").capitalize()
     tag = f"{model} · {ds} · {opt}"
     if ds == "D2":
-        tag = "⚠ " + tag + "（128px 增强图训练，仅对照）"
+        tag = "⚠ " + tag + " (trained on 128px augmented images; comparison only)"
     return tag
 
 
@@ -75,10 +75,11 @@ def get_model(run_dir: Path):
 
 
 def predict_one(run_dir: Path, image_path: str) -> dict:
-    """单模型推理，返回概率、叠加图、Grad-CAM 数组。
+    """Single-model inference; returns probabilities, the overlay image and the Grad-CAM array.
 
-    Grad-CAM 跟随**模型实际判定的类别**：判 nondefect 时就解释 nondefect 的证据，
-    否则热力图会显示"支持 defect 的证据"，在无缺陷样本上几乎全黑、看着像出错。
+    Grad-CAM follows the class **the model actually predicted**: when it predicts nondefect it explains the
+    nondefect evidence, otherwise the heatmap would show evidence for defect, look almost black on defect-free
+    samples and appear broken.
     """
     import numpy as np
     import torch
@@ -107,7 +108,7 @@ def predict_one(run_dir: Path, image_path: str) -> dict:
 
 
 def run_table(image_path: str) -> list[list]:
-    """同一个输入跑遍所有可用 checkpoint，做模型间对比。"""
+    """Run the same input through every available checkpoint for a model-to-model comparison."""
     import pandas as pd
 
     rows = []
@@ -122,32 +123,33 @@ def run_table(image_path: str) -> list[list]:
             rows.append([label_of(run_dir), round(r["p_defect"], 3),
                          "defect" if r["p_defect"] >= 0.5 else "nondefect",
                          round(meta.get("metrics", {}).get("test", {}).get("accuracy", float("nan")), 3)])
-        except Exception as exc:  # 单个模型失败不影响整个对比表
-            rows.append([label_of(run_dir), None, f"加载失败: {type(exc).__name__}", None])
+        except Exception as exc:  # one failing model must not break the whole comparison table
+            rows.append([label_of(run_dir), None, f"failed to load: {type(exc).__name__}", None])
     return rows
 
 
 def ui_predict(image_path, run_label, compare_all):
-    """Gradio 回调：返回 (Label, 叠加图, Markdown 说明, 对比表)。"""
+    """Gradio callback: returns (Label, overlay image, Markdown notes, comparison table)."""
     import gradio as gr
 
     if not image_path:
-        return None, None, "先上传一张图片。", None
+        return None, None, "Upload an image first.", None
 
     runs = available_runs()
     by_label = {label_of(p): p for p in runs}
     if not runs:
-        return None, None, "results/runs 下没有 model.pt，无法推理。", None
+        return None, None, "No model.pt under results/runs; cannot run inference.", None
 
     run_dir = by_label.get(run_label, runs[0])
     try:
         r = predict_one(run_dir, image_path)
     except Exception as exc:
-        # 降级：显示提前渲染好的示例图，保证现场不断流
+        # Fallback: show the pre-rendered example figure so a live demo never dies
         fig = FIG_DIR / f"predict_{run_dir.name}.png"
-        msg = (f"**模型加载失败**：`{type(exc).__name__}: {exc}`\n\n"
-               f"已切到预生成示例图（`{fig.name}`）。"
-               "如果提示下载失败，说明现场没网且权重没预热——演讲前请跑 `--warmup`。")
+        msg = (f"**Model failed to load**: `{type(exc).__name__}: {exc}`\n\n"
+               f"Falling back to the pre-rendered example figure (`{fig.name}`). "
+               "If this mentions a download failure, the venue has no network and the weights were not "
+               "pre-loaded — run `--warmup` before the talk.")
         return None, str(fig) if fig.exists() else None, msg, None
 
     meta = {}
@@ -161,28 +163,29 @@ def ui_predict(image_path, run_label, compare_all):
     n_test = meta.get("n_test", "?")
 
     verdict = "defect" if r["p_defect"] >= 0.5 else "nondefect"
-    verdict_cn = "有缺陷" if verdict == "defect" else "无缺陷"
+    verdict_cn = "defect present" if verdict == "defect" else "no defect"
     prob = {"defect": r["p_defect"], "nondefect": r["p_nondefect"]}
 
     note = (
-        f"**判定：`{verdict}`（{verdict_cn}）** ｜ P(defect) = `{r['p_defect']:.3f}`\n\n"
-        f"热力图解释的是**这个判定**（{'defect' if r.get('pred', 1) == 1 else 'nondefect'}），"
-        "红色 = 支持该判定的区域，蓝色 = 反对。\n\n"
-        f"该模型在 D1 测试集（n={n_test}）上的整体表现："
+        f"**Verdict: `{verdict}` ({verdict_cn})** | P(defect) = `{r['p_defect']:.3f}`\n\n"
+        f"The heatmap explains **this verdict** ({'defect' if r.get('pred', 1) == 1 else 'nondefect'}); "
+        "red = regions supporting the verdict, blue = opposing it.\n\n"
+        f"Overall performance of this model on the D1 test set (n={n_test}): "
         f"acc `{tm.get('accuracy', float('nan')):.3f}` · F1 `{tm.get('f1', float('nan')):.3f}` · "
-        f"MCC `{tm.get('mcc', float('nan')):.3f}`。\n\n"
-        "单张图的判断不代表整体准确率——测试集只有 54 张，错 1 张就是 1.8 个百分点。\n\n"
-        "热力图是 Grad-CAM：红色区域是模型做判断时看得最重的地方。"
-        "如果红色落在背景或反光上，说明它学到了伪相关。"
+        f"MCC `{tm.get('mcc', float('nan')):.3f}`.\n\n"
+        "A single image does not represent overall accuracy — the test set has only 54 images, so one "
+        "mistake costs 1.8 percentage points.\n\n"
+        "The heatmap is Grad-CAM: red regions are where the model looked most when deciding. If the red lands "
+        "on the background or on reflections, the model learned a spurious correlation."
     )
     table = run_table(image_path) if compare_all else None
     return prob, r["overlay"], note, table
 
 
 def demo_examples(per_class: int = 2) -> list[Path]:
-    """界面示例图：优先 samples/D1_test（D1 测试集里抽的图，训练从未见过）。
+    """UI example images: prefer samples/D1_test (drawn from the D1 test set, never seen in training).
 
-    退回到 samples/D1（Kenneth 做的 224px 调试图，含较多模型易错的边缘样本）。
+    Falls back to samples/D1 (224px debug images prepared by Kenneth, including many hard edge cases).
     """
     for base in ("D1_test", "D1"):
         out = []
@@ -202,54 +205,57 @@ DEMO_EXAMPLES = demo_examples()
 def build_ui(choices: list[str], default: str):
     import gradio as gr
 
-    with gr.Blocks(title="3D 打印件缺陷检测 · 迁移学习复现") as demo:
+    with gr.Blocks(title="3D-printed part defect detection · transfer-learning reproduction") as demo:
         gr.Markdown(
-            "# 3D 打印件缺陷检测 · 迁移学习复现\n"
-            "**IDAT7215 Group Project · Topic 4** — 冻结 ImageNet 骨干，只训练论文同款分类头。\n\n"
-            f"> 可推理的模型：{len(choices)} 个（5 个 D1 + 5 个 D2，均 Adam）。其余 run 只保存了指标，没有权重。"
-            "  \n> **D2 的 checkpoint 是在 128×128 增强图上训练的，对 224 原图明显更差（10 张缺陷样例只对 2–6 张），"
-            "只作对照，演示时建议用 D1。**"
-            "  \n> 首次推理会载入骨干，约 3–8 秒；之后切换图片是秒级。"
+            "# 3D-printed part defect detection · transfer-learning reproduction\n"
+            "**IDAT7215 Group Project · Topic 4** — frozen ImageNet backbones with the paper's classification head.\n\n"
+            f"> Models available for inference: {len(choices)} (5 on D1 + 5 on D2, all Adam). The other runs "
+            "store metrics only, without weights."
+            "  \n> **The D2 checkpoints were trained on 128×128 augmented images and are clearly worse on 224px "
+            "originals (only 2–6 of 10 defect samples correct), so use D1 for the demo; D2 is for comparison only.**"
+            "  \n> The first inference loads the backbone and takes 3–8 s; switching images afterwards is fast."
         )
         with gr.Row():
             with gr.Column(scale=1):
-                img = gr.Image(type="filepath", label="上传 3D 打印件照片", height=320)
+                img = gr.Image(type="filepath", label="Upload a photo of a 3D-printed part", height=320)
                 if DEMO_EXAMPLES:
-                    gr.Markdown("示例顺序：第 1–2 张是 **defect（有缺陷）**，第 3–4 张是 **nondefect（无缺陷）**。"
-                                "先点有缺陷的两张，再点无缺陷的两张。")
+                    gr.Markdown("Example order: images 1–2 are **defect**, images 3–4 are **nondefect**. "
+                                "Click the two defect ones first, then the two nondefect ones.")
                     gr.Examples(examples=[[str(p)] for p in DEMO_EXAMPLES],
                                 inputs=[img],
-                                label="示例（D1 测试集，训练未见过；每类 2 张，是挑选的样本，不是随机抽样）")
-                model_dd = gr.Dropdown(choices, value=default, label="模型")
-                compare = gr.Checkbox(value=False, label="同时对比全部模型（慢约 5–10 秒）")
-                btn = gr.Button("判定", variant="primary")
+                                label="Examples (D1 test set, unseen in training; 2 per class, hand-picked, "
+                                      "not a random sample)")
+                model_dd = gr.Dropdown(choices, value=default, label="Model")
+                compare = gr.Checkbox(value=False, label="Compare all models (about 5–10 s slower)")
+                btn = gr.Button("Predict", variant="primary")
             with gr.Column(scale=1):
-                out_label = gr.Label(num_top_classes=2, label="类别概率")
-                out_img = gr.Image(label="Grad-CAM（红 = 模型关注区域）", height=320)
+                out_label = gr.Label(num_top_classes=2, label="Class probability")
+                out_img = gr.Image(label="Grad-CAM (red = model attention)", height=320)
         out_note = gr.Markdown()
         out_table = gr.Dataframe(
-            headers=["模型", "P(defect)", "判定", "D1 测试 acc"],
+            headers=["Model", "P(defect)", "Prediction", "D1 test acc"],
             datatype=["str", "number", "str", "number"],
-            label="全部模型对比", wrap=True,
+            label="All-model comparison", wrap=True,
         )
         btn.click(ui_predict, [img, model_dd, compare], [out_label, out_img, out_note, out_table])
         img.change(ui_predict, [img, model_dd, compare], [out_label, out_img, out_note, out_table])
         gr.Markdown(
             "---\n"
-            "**说明**：正类 = `defect`。预处理与训练一致（直接 resize 到 224×224、不裁剪长宽比）。"
-            "D1 测试集只有 54 张，单张判错对总体指标影响很大，界面不承诺泛化性能。"
+            "**Notes**: positive class = `defect`. Preprocessing matches training (direct resize to 224×224, "
+            "no aspect-ratio crop). The D1 test set has only 54 images, so a single wrong prediction moves the "
+            "overall metric a lot; the UI does not promise generalisation performance."
         )
     return demo
 
 
 def warmup(verbose: bool = True) -> None:
-    """把每个 checkpoint 的骨干都下载并跑一次前向，演讲前执行。"""
+    """Download the backbone of every checkpoint and run one forward pass; run this before a talk."""
     import numpy as np
     import torch
 
     runs = available_runs()
     if not runs:
-        print("[warmup] 没有找到 model.pt")
+        print("[warmup] no model.pt found")
         return
     dummy = torch.zeros(1, 3, 224, 224)
     for i, run_dir in enumerate(runs, 1):
@@ -261,21 +267,21 @@ def warmup(verbose: bool = True) -> None:
                 print(f"[warmup] {i}/{len(runs)} {label_of(run_dir)} ok "
                       f"(logits {logits.shape})", flush=True)
         except Exception as exc:
-            print(f"[warmup] {i}/{len(runs)} {label_of(run_dir)} 失败：{type(exc).__name__}: {exc}",
+            print(f"[warmup] {i}/{len(runs)} {label_of(run_dir)} failed: {type(exc).__name__}: {exc}",
                   flush=True)
-    print("[warmup] 完成。现场请设置 HF_HUB_OFFLINE=1 再启动界面。")
+    print("[warmup] done. Set HF_HUB_OFFLINE=1 before launching the UI at the venue.")
 
 
 def selftest() -> int:
-    """不开界面：用合成图跑一次推理，验证载入 / 前向 / Grad-CAM 全链路。"""
+    """No UI: run one inference on a synthetic image to verify loading / forward / Grad-CAM end to end."""
     import numpy as np
     from PIL import Image
 
     runs = available_runs()
     if not runs:
-        print("[selftest] 没有 model.pt")
+        print("[selftest] no model.pt")
         return 1
-    # 用最小的 checkpoint（MobileNetV2）自检，避免一次拉 1 GB 骨干
+    # Use the smallest checkpoint (MobileNetV2) to avoid pulling a 1 GB backbone
     run_dir = min(runs, key=lambda p: (p / "model.pt").stat().st_size)
     tmp = Path(os.environ.get("TEMP", "/tmp")) / "am_defect_selftest.png"
     arr = (np.random.default_rng(0).random((480, 480, 3)) * 255).astype("uint8")
@@ -283,21 +289,21 @@ def selftest() -> int:
     r = predict_one(run_dir, str(tmp))
     print(f"[selftest] {label_of(run_dir)} p_defect={r['p_defect']:.4f} "
           f"cam={r['cam'].shape} overlay={r['overlay'].size}")
-    print("[selftest] 单模型链路 OK。要验证其余模型请跑 --warmup。")
+    print("[selftest] single-model path OK. Run --warmup to verify the remaining models.")
     return 0
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default=None, help="vgg16 / resnet50 / ...（默认第一个可用）")
-    ap.add_argument("--ckpt", default=None, help="直接指定 run 目录")
-    ap.add_argument("--warmup", action="store_true", help="只预热权重，不启动界面")
-    ap.add_argument("--selftest", action="store_true", help="跑一次离线推理自检")
-    ap.add_argument("--offline", action="store_true", help="设置 HF_HUB_OFFLINE=1（权重需已预热）")
+    ap.add_argument("--model", default=None, help="vgg16 / resnet50 / ... (defaults to the first available)")
+    ap.add_argument("--ckpt", default=None, help="run directory to use directly")
+    ap.add_argument("--warmup", action="store_true", help="only pre-load weights, do not launch the UI")
+    ap.add_argument("--selftest", action="store_true", help="run one offline inference self-test")
+    ap.add_argument("--offline", action="store_true", help="set HF_HUB_OFFLINE=1 (weights must be pre-loaded)")
     ap.add_argument("--mirror", action="store_true",
-                    help="走 hf-mirror.com 下载 timm 权重（国内网络连不上 huggingface.co 时用）")
-    ap.add_argument("--share", action="store_true", help="生成 Gradio 公网链接（需要联网）")
-    ap.add_argument("--host", default="127.0.0.1", help="0.0.0.0 = 同网段手机可访问")
+                    help="download timm weights via hf-mirror.com (when huggingface.co is unreachable in China)")
+    ap.add_argument("--share", action="store_true", help="create a public Gradio link (needs network)")
+    ap.add_argument("--host", default="127.0.0.1", help="0.0.0.0 = reachable from phones on the same network")
     ap.add_argument("--port", type=int, default=7860)
     ap.add_argument("--no-browser", action="store_true")
     args = ap.parse_args()
@@ -315,7 +321,7 @@ def main() -> None:
 
     runs = available_runs()
     if not runs:
-        raise SystemExit("results/runs 下没有 model.pt，无法启动 demo。")
+        raise SystemExit("No model.pt under results/runs; cannot start the demo.")
     if args.ckpt:
         run_dir = Path(args.ckpt)
         if not run_dir.is_absolute():
@@ -326,7 +332,7 @@ def main() -> None:
         if picked:
             runs = picked + [r for r in runs if r not in picked]
 
-    # 默认用 MobileNetV2：CPU 上载入最快，现场切换不卡
+    # Default to MobileNetV2: fastest to load on CPU, so live switching stays responsive
     order = ["mobilenet_v2", "vgg16", "resnet50", "xception", "inception_resnet_v2"]
     runs = sorted(runs, key=lambda p: (order.index(p.name.split("__")[0])
                                        if p.name.split("__")[0] in order else 99))
@@ -335,7 +341,7 @@ def main() -> None:
 
     kwargs = dict(server_name=args.host, server_port=args.port, share=args.share,
                   inbrowser=not args.no_browser, show_error=True)
-    try:  # Gradio 6 起 theme 从 Blocks 移到 launch；旧版本仍在 Blocks 上
+    try:  # Gradio 6 moved theme from Blocks to launch; older versions still accept it on Blocks
         build_ui(choices, choices[0]).launch(theme=gr.themes.Soft(), **kwargs)
     except TypeError:
         build_ui(choices, choices[0]).launch(**kwargs)

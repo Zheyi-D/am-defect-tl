@@ -8,7 +8,7 @@
 
 | 报告图号 | 文件 | Caption (EN) | 用在哪节 | 生成方式 |
 |---|---|---|---|---|
-| Fig. 1 | `fig_pipeline.png` ⚠️ **待生成** | Overview of the transfer-learning pipeline: frozen ImageNet backbone, paper-style head, and the 66-run matrix. | 2 | 需手工绘制（matplotlib / PPT） |
+| Fig. 1 | `fig_pipeline.png` | Overview of the transfer-learning pipeline: frozen ImageNet backbone, paper-style head, and the 66-run matrix. | 2 | `python tools/make_pipeline_figure.py` |
 | Fig. 2 | `fig_accuracy_by_model.png` | Test accuracy of eleven backbones on D1 and D2, with the values reported by Ahsan et al. overlaid. | 3.1 | `python -m analysis.make_figures` |
 | Fig. 3 | `fig_optimizer_heatmap.png` | Effect of optimizer choice (Adam / SGD / RMSprop) on test accuracy, D1 (left) and D2 (right). | 3.2 | 同上 |
 | Fig. 4 | `fig_confusion_grid.png` | Confusion matrices of the best and worst run on each dataset. | 3.1 | 同上 |
@@ -29,7 +29,7 @@
 | `fig_leakage_full.png` / `fig_leakage_small15.png` | 泄漏实验的单设定版本（主图用 combined） |
 | `fig_confusion_grid.png` | 已用作 Fig. 4 |
 
-## 表格（`reports/tables/`，脚本生成，禁止手改）
+## 表格（`reports/tables/`，脚本生成，禁止手改；共 6 张 × md + tex）
 
 | 报告表号 | 文件 | Caption | 章节 |
 |---|---|---|---|
@@ -38,4 +38,4 @@
 | Table 3 | `table3_d2_results.md` / `.tex` | Full results on D2 (11 × 3). | 3.1 |
 | Table 4 | `table4_delta.md` / `.tex` | Accuracy difference against the reported values. | 3.3 |
 | Table 5 | `table5_efficiency.md` / `.tex` | Inference cost per image (params, FLOPs, CPU/GPU). | 3.6 |
-| Table 6 | ⚠️ **待生成**（源：`results/leakage.csv`） | Leakage control experiment results. | 3.4 |
+| Table 6 | `table6_leakage.md` / `.tex` | Leakage control experiment on a re-augmented dataset (D2'): random split versus source-grouped split, under two training-set regimes. | 3.4 |

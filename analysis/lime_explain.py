@@ -1,21 +1,21 @@
-# Author: jellyfishhamburger | Task: T4 LIME 可解释性（CPU） | PR: 待提
-# Status: 本组原创实现；LIME 库为第三方（见 NOTICE.md），本文件只做适配与出图。
-"""LIME 解释图：同一张图，模型靠哪些超像素做判断（T4）。
+# Author: jellyfishhamburger | Task: T4 LIME explainability (CPU) | PR: pending
+# Status: original implementation; the LIME library is third-party (see NOTICE.md); this file only adapts it and draws figures.
+"""LIME explanation figures: which superpixels drive the model's decision for the same image (T4).
 
-输入：
-    results/runs/*/model.pt     分类头权重（Kenneth 已上传 5 个 D1 + 5 个 D2，均为 Adam）
-    samples/D1/{defect,nondefect}/*.jpg   20 张 224×224 调试样图（仓库已带）
+Inputs:
+    results/runs/*/model.pt     classification-head weights (Kenneth uploaded 5 on D1 + 5 on D2, all Adam)
+    samples/D1/{defect,nondefect}/*.jpg   20 debug samples at 224×224 (shipped with the repo)
 
-输出：
-    results/figures/lime_<run_id>.png     每个模型一张：原图 + LIME 正/负贡献区域
+Outputs:
+    results/figures/lime_<run_id>.png     one per model: original image + LIME positive/negative regions
 
-用法：
-    python -m analysis.lime_explain                                  # 默认 3 个模型 × 4 张图
+Usage:
+    python -m analysis.lime_explain                                  # default 3 models × 4 images
     python -m analysis.lime_explain --models vgg16,resnet50 --dataset D1 --num-samples 120
     python -m analysis.lime_explain --dataset D2 --n-per-class 3
 
-验收要点（T4）：≥3 个模型各出 1 张图；CPU 上单图 ≤60 秒。
-    实测 VGG16 约 8–12 秒/图（num_samples=100），用 --num-samples 可调。
+Acceptance (T4): at least 3 models, one figure each; ≤60 s per image on CPU.
+    Measured: VGG16 takes about 8–12 s per image with num_samples=100; use --num-samples to tune.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ DISPLAY = {
 
 
 def list_samples(samples_root: Path, dataset: str, n_per_class: int) -> list[tuple[Path, str]]:
-    """从 samples/<dataset>/{defect,nondefect} 各取 n 张（按文件名排序，可复现）。"""
+    """Take n images per class from samples/<dataset>/{defect,nondefect} (sorted by name, reproducible)."""
     out = []
     for label in ("defect", "nondefect"):
         d = samples_root / dataset / label
@@ -59,7 +59,7 @@ def find_run(model: str, dataset: str, opt: str = "adam") -> Path | None:
 
 
 def make_predict_fn(model, size: int):
-    """把模型包成 LIME 需要的 f(numpy N×H×W×3) → (N, 2) 概率。"""
+    """Wrap the model as the f(numpy N×H×W×3) → (N, 2) probability function LIME expects."""
     import torch
     from src.dataset import IMAGENET_MEAN, IMAGENET_STD
 
@@ -83,7 +83,7 @@ def make_predict_fn(model, size: int):
 
 def overlay_mask(img: np.ndarray, mask: np.ndarray, color=(220, 60, 40),
                  alpha_pos: float = 0.55) -> np.ndarray:
-    """正贡献区域涂红，负贡献区域涂蓝；其余保持原图。"""
+    """Tint positive-contribution regions red and negative ones blue; everything else stays unchanged."""
     out = img.astype(np.float32).copy()
     pos = mask > 0
     neg = mask < 0
@@ -115,7 +115,7 @@ def explain_one(run_dir: Path, samples: list[tuple[Path, str]], num_samples: int
     axes = np.atleast_2d(axes)
 
     def stamp(ax, text, y=0.03, size=7.6):
-        """把说明直接压在图片底部，避免标题和上一行图片重叠。"""
+        """Draw the caption directly on the image bottom so it does not overlap the row above."""
         ax.text(0.5, y, text, transform=ax.transAxes, ha="center", va="bottom",
                 fontsize=size, color="white", linespacing=1.35,
                 bbox=dict(boxstyle="round,pad=0.3", fc="black", ec="none", alpha=0.55))
@@ -159,24 +159,24 @@ def explain_one(run_dir: Path, samples: list[tuple[Path, str]], num_samples: int
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", default="vgg16,resnet50,mobilenet_v2",
-                    help="逗号分隔；默认 3 个（T4 验收要求 ≥3）")
+                    help="comma-separated; default 3 models (T4 requires at least 3)")
     ap.add_argument("--dataset", default="D1", choices=["D1", "D2"])
     ap.add_argument("--samples-root", type=Path, default=SAMPLES)
-    ap.add_argument("--n-per-class", type=int, default=2, help="每类取几张（默认 2，共 4 张）")
-    ap.add_argument("--num-samples", type=int, default=100, help="LIME 采样数；越大越稳也越慢")
-    ap.add_argument("--num-features", type=int, default=6, help="展示的超像素数量")
+    ap.add_argument("--n-per-class", type=int, default=2, help="images per class (default 2, 4 in total)")
+    ap.add_argument("--num-samples", type=int, default=100, help="LIME sample count; larger is more stable and slower")
+    ap.add_argument("--num-features", type=int, default=6, help="number of superpixels to show")
     args = ap.parse_args()
 
     samples = list_samples(args.samples_root, args.dataset, args.n_per_class)
     if not samples:
-        raise SystemExit(f"{args.samples_root}/{args.dataset} 下没有样图；先确认 samples/ 是否存在")
+        raise SystemExit(f"no sample images under {args.samples_root}/{args.dataset}; check that samples/ exists")
 
     FIGDIR.mkdir(parents=True, exist_ok=True)
     made = []
     for name in [m.strip() for m in args.models.split(",") if m.strip()]:
         run_dir = find_run(name, args.dataset)
         if run_dir is None:
-            print(f"[lime] 跳过 {name}：没有 {args.dataset}/adam 的 model.pt")
+            print(f"[lime] skipping {name}: no model.pt for {args.dataset}/adam")
             continue
         print(f"[lime] {DISPLAY.get(name, name)} · {run_dir.name} …", flush=True)
         out = explain_one(run_dir, samples, args.num_samples, args.num_features)
@@ -184,7 +184,7 @@ def main() -> None:
         print(f"[lime]   -> {out.name}", flush=True)
 
     if not made:
-        raise SystemExit("一张图都没生成：检查模型名与 dataset")
+        raise SystemExit("no figure was generated: check the model names and dataset")
 
 
 if __name__ == "__main__":

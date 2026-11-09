@@ -1,18 +1,18 @@
-# Author: Kenneth | Task: 生成报告骨架 docx（封面 + 标题）
-"""生成报告骨架 .docx：只含**封面**与**各级标题**（正文留空）。
+# Author: Kenneth | Task: generate the report skeleton docx (cover page + headings)
+"""Generate the report skeleton .docx: only the **cover page** and the **headings** (body left empty).
 
-用途：
-    1. 作为 WPS/金山文档协同编辑的起点（见 reports/ONLINE.md）
-    2. 结构变动时本地重生成 → `kdocs-cli drive upload-file` 覆盖同一文档
+Purpose:
+    1. Starting point for collaborative editing in WPS / Kdocs (see reports/ONLINE.md)
+    2. Regenerate locally when the structure changes -> `kdocs-cli drive upload-file` overwrites the same document
 
-用法：
+Usage:
     python tools/build_report_docx.py --out report_draft.docx
 
-约定：
-    - A4 页面，上下页边距 2.54 cm、左右 3.17 cm
-    - 正文 Times New Roman 12 pt，单倍行距，段后 6 pt
-    - H1 16 pt 粗体 / H2 14 pt 粗体，均为黑色
-    - 每个标题后留一个空段落，方便撰写
+Conventions:
+    - A4 page, top/bottom margins 2.54 cm, left/right margins 3.17 cm
+    - Body text Times New Roman 12 pt, single line spacing, 6 pt space after
+    - H1 16 pt bold / H2 14 pt bold, both black
+    - An empty paragraph follows each heading to make writing easier
 """
 
 from __future__ import annotations
@@ -59,21 +59,21 @@ def build(out: Path) -> Path:
 
     doc = Document()
 
-    # 页面：A4 + 标准页边距
+    # Page: A4 with standard margins
     sec = doc.sections[0]
     sec.page_width, sec.page_height = Cm(21.0), Cm(29.7)
     sec.top_margin = sec.bottom_margin = Cm(2.54)
     sec.left_margin = sec.right_margin = Cm(3.17)
 
-    # 正文样式
+    # Body style
     normal = doc.styles["Normal"]
     normal.font.name = "Times New Roman"
     normal.font.size = Pt(12)
-    normal.element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
+    normal.element.rPr.rFonts.set(qn("w:eastAsia"), "SimSun")
     normal.paragraph_format.space_after = Pt(6)
     normal.paragraph_format.line_spacing = 1.0
 
-    # 标题样式
+    # Heading styles
     for name, size in (("Heading 1", 16), ("Heading 2", 14)):
         st = doc.styles[name]
         st.font.name = "Times New Roman"
@@ -100,7 +100,7 @@ def build(out: Path) -> Path:
             p.paragraph_format.left_indent = Cm(indent_cm)
         p.add_run(text).font.size = Pt(12)
 
-    # ---------------- 封面 ----------------
+    # ---------------- Cover page ----------------
     for _ in range(5):
         doc.add_paragraph()
 
@@ -133,7 +133,7 @@ def build(out: Path) -> Path:
 
     doc.add_page_break()
 
-    # ---------------- 标题（正文留空） ----------------
+    # ---------------- Headings (body left empty) ----------------
     for title, level in SECTIONS:
         doc.add_heading(title, level=level)
         doc.add_paragraph()
@@ -148,7 +148,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("report_draft.docx"))
     args = ap.parse_args()
     path = build(args.out)
-    print(f"[report-docx] 写出 {path}（{path.stat().st_size} bytes，{1 + len(SECTIONS)} 个标题块）")
+    print(f"[report-docx] wrote {path} ({path.stat().st_size} bytes, {1 + len(SECTIONS)} heading blocks)")
 
 
 if __name__ == "__main__":

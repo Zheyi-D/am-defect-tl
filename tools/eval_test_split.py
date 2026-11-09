@@ -1,9 +1,10 @@
-"""用保存的 checkpoint 复跑 D1 测试集（54 张），核对 metrics.json 里的 accuracy。
+"""Re-run the D1 test split (54 images) with the saved checkpoints and check the accuracy in metrics.json.
 
-为什么需要：demo 上传图时出现判错，需要判断是"图难"还是"checkpoint 与报告值不一致"。
-本脚本按训练同款预处理（data_prepare：draft → 224 → JPEG q92）逐张预测。
+Why it is needed: uploaded images were misclassified in the demo, so we need to tell "hard image" apart from
+"checkpoint no longer matches the reported value". This script predicts image by image with the same
+preprocessing as training (data_prepare: draft -> 224 -> JPEG q92).
 
-用法：
+Usage:
     python tools/eval_test_split.py --models vgg16,mobilenet_v2 --dataset D1
 """
 

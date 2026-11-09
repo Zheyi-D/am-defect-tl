@@ -1,13 +1,13 @@
-# Author: 组长 + agent | Task: 结果汇总（leaderboard） | PR: 待提
-# Status: 本组原创实现
-"""汇总 results/runs/*/metrics.json → results/leaderboard.csv
+# Author: Lead + agent | Task: results aggregation (leaderboard) | PR: TBD
+# Status: original implementation by this team
+"""Aggregate results/runs/*/metrics.json into results/leaderboard.csv.
 
-同时读 docs/paper_results.csv（作者的 297 行报告值），算出 delta_acc / delta_f1，
-方便直接看"我们和论文差多少"。
+Also reads docs/paper_results.csv (the authors' 297 reported values) and computes delta_acc / delta_f1,
+so the gap between our runs and the paper can be seen at a glance.
 
-用法：
-    python -m src.aggregate                          # 生成 leaderboard
-    python -m src.aggregate --check                  # 只检查完整性
+Usage:
+    python -m src.aggregate                          # build the leaderboard
+    python -m src.aggregate --check                  # only check completeness
     python -m src.aggregate --out results/leaderboard.csv
 """
 
@@ -29,12 +29,12 @@ EXPECTED_RUNS = 11 * 3 * 2  # 66
 
 
 def collect(runs_dir: Path) -> list[dict]:
-    """读所有 metrics.json，返回按 (dataset, optimizer, model) 排序的记录。"""
+    """Read every metrics.json and return records sorted by (dataset, optimizer, model)."""
     records = []
     for path in sorted(Path(runs_dir).glob("*/metrics.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         if data.get("smoke"):
-            continue  # 冒烟结果不进正式榜
+            continue  # smoke runs are excluded from the official leaderboard
         test = data.get("metrics", {}).get("test", {})
         rec = {
             "run_id": data.get("run_id", path.parent.name),
@@ -54,7 +54,7 @@ def collect(runs_dir: Path) -> list[dict]:
 
 
 def load_paper(path: Path) -> dict[tuple, dict]:
-    """读作者报告值 → {(model, dataset, optimizer): {'accuracy':..,'f1':..}}（取 test 行）。"""
+    """Read the authors' reported values -> {(model, dataset, optimizer): {'accuracy':..,'f1':..}} (test rows only)."""
     out: dict[tuple, dict] = {}
     p = Path(path)
     if not p.exists():
@@ -108,16 +108,16 @@ def main() -> None:
     paper = load_paper(args.paper)
     attach_paper(records, paper)
 
-    print(f"[aggregate] 正式 run 数：{len(records)} / {EXPECTED_RUNS}，"
-          f"作者对标值 {len(paper)} 条")
+    print(f"[aggregate] official runs: {len(records)} / {EXPECTED_RUNS}, "
+          f"paper reference rows: {len(paper)}")
     if args.check:
         missing = EXPECTED_RUNS - len(records)
-        print("[aggregate] " + ("完整 ✅" if missing == 0 else f"还缺 {missing} 个 run"))
+        print("[aggregate] " + ("complete" if missing == 0 else f"{missing} runs still missing"))
         raise SystemExit(0 if missing == 0 else 1)
 
     report(records)
     write_leaderboard(records, args.out)
-    print(f"[aggregate] 已写出 {args.out}")
+    print(f"[aggregate] wrote {args.out}")
 
 
 if __name__ == "__main__":

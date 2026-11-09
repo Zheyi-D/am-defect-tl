@@ -1,4 +1,4 @@
-"""给 4 张示例图生成原图 + Grad-CAM 叠加，检查热区是否落在试样上。"""
+"""Generate the original image + Grad-CAM overlay for 4 sample images and check that the hot spot lands on the specimen."""
 import glob
 import sys
 from pathlib import Path
@@ -20,7 +20,7 @@ tiles = []
 for p in imgs:
     r = predict_one(run, p)
     cam = r["cam"]
-    # 热区质心（相对坐标），看它落在画面哪一块
+    # Hot-spot location in relative coordinates: which part of the frame does it fall on
     ys, xs = np.unravel_index(np.argmax(cam), cam.shape)
     print(f"{Path(p).name:16s} p_defect={r['p_defect']:.3f}  CAM argmax at "
           f"({xs}/{cam.shape[1]}, {ys}/{cam.shape[0]})  cam max={cam.max():.2f}")

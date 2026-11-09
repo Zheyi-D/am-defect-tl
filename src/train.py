@@ -1,11 +1,11 @@
-# Author: 组长 + agent | Task: 训练循环（单 run） | PR: 待提
-# Status: 本组原创实现
-"""单个 run 的训练入口。产物写入 <out>/runs/<run_id>/（字段见 docs/RESULTS.md）。
+# Author: Lead + agent | Task: training loop (single run) | PR: TBD
+# Status: original implementation by this team
+"""Training entry point for a single run. Artifacts are written to <out>/runs/<run_id>/ (fields in docs/RESULTS.md).
 
-用法：
+Usage:
     python -m src.train --config configs/vgg16.yaml \
         --data-root /kaggle/input/datasets/kennethdeng/am-defect-v1 --splits-dir splits --out results
-    # 冒烟（20 张图 / 1 epoch）
+    # smoke (20 images / 1 epoch)
     python -m src.train --config configs/vgg16.yaml --data-root ... --smoke
 """
 
@@ -34,7 +34,7 @@ def load_config(path: Path) -> dict:
     cfg = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     for key in ("model", "dataset", "optimizer", "lr", "batch_size", "epochs"):
         if key not in cfg:
-            raise KeyError(f"config 缺少必填字段：{key}")
+            raise KeyError(f"config is missing the required field: {key}")
     cfg.setdefault("seed", 42)
     cfg.setdefault("input_size", 224)
     cfg.setdefault("num_classes", 2)
@@ -62,7 +62,7 @@ def build_optimizer(model: nn.Module, cfg: dict):
         return torch.optim.SGD(params, momentum=0.9, **kw)
     if name == "rmsprop":
         return torch.optim.RMSprop(params, **kw)
-    raise ValueError(f"未知优化器：{cfg['optimizer']}（可选 adam / sgd / rmsprop）")
+    raise ValueError(f"unknown optimizer: {cfg['optimizer']} (choose adam / sgd / rmsprop)")
 
 
 def run_epoch(model, loader, criterion, device, optimizer=None, scaler=None):
@@ -109,7 +109,7 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
     run_id = make_run_id(cfg["model"], cfg["dataset"], cfg["optimizer"], int(cfg["seed"]))
     run_dir = ensure_dir(Path(out_root) / "runs" / run_id)
     if (run_dir / "metrics.json").exists() and not force and not smoke:
-        print(f"[train] 跳过已存在：{run_id}")
+        print(f"[train] skipping existing run: {run_id}")
         return run_dir
 
     set_seed(int(cfg["seed"]))
@@ -119,13 +119,13 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
     epochs = 1 if smoke else int(cfg["epochs"])
     split_csv = Path(splits_dir) / f"{cfg['dataset']}.csv"
     if not split_csv.exists():
-        raise FileNotFoundError(f"找不到划分文件 {split_csv}，先运行 python -m src.splits")
+        raise FileNotFoundError(f"split file {split_csv} not found, run python -m src.splits first")
 
     loaders = {}
     for split in ("train", "val", "test"):
         rows = read_split(split_csv, split)
         if not rows:
-            raise RuntimeError(f"{split_csv} 里 {split} 为空")
+            raise RuntimeError(f"{split_csv} has no {split} rows")
         ds = AMDefectDataset(rows, data_root, int(cfg["input_size"]),
                              train=(split == "train"), augment=bool(cfg["augment"]),
                              limit=SMOKE_LIMITS[split] if smoke else None,
@@ -143,7 +143,7 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
         input_size=int(cfg["input_size"]),
     ).to(device)
     total_p, train_p = count_params(model)
-    print(f"[train] 特征图形状={model.feat_shape}  总参数={total_p:,}  可训练={train_p:,}", flush=True)
+    print(f"[train] feat_shape={model.feat_shape}  total params={total_p:,}  trainable={train_p:,}", flush=True)
 
     optimizer = build_optimizer(model, cfg)
     criterion = nn.CrossEntropyLoss()
@@ -178,7 +178,7 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
 
     dump_json(run_dir / "confusion_matrices.json", {
         "labels": ["nondefect", "defect"], **confusion,
-        "note": "行=真实，列=预测，顺序同 labels",
+        "note": "rows = true labels, columns = predicted, same order as labels",
     })
     dump_json(run_dir / "metrics.json", {
         "run_id": run_id,
@@ -203,12 +203,13 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
         "smoke": smoke,
         "annotations": {
             "augment": bool(cfg["augment"]),
-            "note": "冒烟结果，不可用于报告" if smoke else "",
+            "note": "smoke run, not usable for the report" if smoke else "",
         },
     })
     if cfg.get("save_weights"):
-        # 只存「骨干名 + 分类头权重」：骨干是可复原的 ImageNet 预训练权重，
-        # 分类头仅 3 万参数（约 130 KB），checkpoint 极小，便于入库与传输。
+        # Only store the backbone name plus the head weights: the backbone is the reproducible ImageNet
+        # pretrained model, and the head has just ~30k parameters (about 130 KB), so the checkpoint stays
+        # tiny and is easy to commit and transfer.
         torch.save({
             "model": cfg["model"],
             "num_classes": int(cfg["num_classes"]),
@@ -220,16 +221,16 @@ def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
             "head_state": model.head.state_dict(),
             "run_id": run_id,
         }, run_dir / "model.pt")
-        print(f"[train] 已保存分类头权重：{run_dir / 'model.pt'}", flush=True)
+        print(f"[train] saved head weights: {run_dir / 'model.pt'}", flush=True)
 
     try:
         ev.plot_curves(log, run_dir / "curves.png")
         for split in ("train", "val", "test"):
             ev.plot_confusion(confusion[split], f"{run_id} / {split}", run_dir / f"confusion_{split}.png")
-    except Exception as exc:  # 画图失败不影响结果落盘
-        print(f"[warn] 画图失败：{exc}", flush=True)
+    except Exception as exc:  # a plotting failure does not affect the results already written to disk
+        print(f"[warn] plotting failed: {exc}", flush=True)
 
-    print(f"[train] 完成 {run_id}  用时 {elapsed:.1f}s  -> {run_dir}", flush=True)
+    print(f"[train] finished {run_id}  time {elapsed:.1f}s  -> {run_dir}", flush=True)
     return run_dir
 
 
@@ -241,13 +242,13 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=Path("results"))
     ap.add_argument("--optimizer", default=None)
     ap.add_argument("--dataset", default=None)
-    ap.add_argument("--model", default=None, help="覆盖 config 里的 model（如 vgg16）")
+    ap.add_argument("--model", default=None, help="override the model in the config (e.g. vgg16)")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--cache-root", type=Path, default=None,
-                    help="预处理缓存目录（建议先跑 src.data_prepare）")
-    ap.add_argument("--save-weights", action="store_true", help="保存分类头权重 model.pt")
+                    help="preprocessed image cache directory (running src.data_prepare first is recommended)")
+    ap.add_argument("--save-weights", action="store_true", help="save the classification head weights to model.pt")
     args = ap.parse_args()
 
     cfg = load_config(args.config)

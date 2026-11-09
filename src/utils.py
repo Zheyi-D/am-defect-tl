@@ -1,6 +1,6 @@
-# Author: 组长 + agent | Task: 通用工具（随机种子 / 目录 / JSON） | PR: 待提
-# Status: 本组原创实现
-"""通用工具函数。"""
+# Author: Lead + agent | Task: shared utilities (random seed / directories / JSON) | PR: TBD
+# Status: original implementation by this team
+"""Shared utility functions."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 def set_seed(seed: int = 42) -> None:
-    """固定所有随机源，保证同一配置可复现。"""
+    """Seed every random source so that the same configuration is reproducible."""
     random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
     try:
@@ -48,10 +48,10 @@ def make_run_id(model: str, dataset: str, optimizer: str, seed: int) -> str:
 
 
 def git_commit() -> str:
-    """读当前 commit。
+    """Read the current commit.
 
-    Kaggle 上代码是 zip 解压的、没有 .git，所以 build_kernel 会在包里写一个 VERSION 文件，
-    这里优先读 git，退化为读 VERSION。
+    On Kaggle the code is unpacked from a zip and has no .git, so build_kernel writes a VERSION
+    file into the bundle; this function prefers git and falls back to reading VERSION.
     """
     try:
         import subprocess

@@ -11,6 +11,8 @@
 | 分享范围 | `anyone`（持有链接即可访问），状态 `open` |
 | 创建日期 | 2026-11-09 |
 
+| 幻灯片（PPT） | **https://www.kdocs.cn/l/co7EkTOqxwN0** — `IDAT7215 Topic4 Slides.pptx`（15 页骨架，file_id `h3cZWetCurMxngLqnmWa1xdT85tidtybP`） |
+
 > 这是**报告正文唯一的协同编辑入口**。仓库里不放 docx，只放链接与结构源。
 
 ---

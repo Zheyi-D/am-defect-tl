@@ -209,6 +209,7 @@ python tools/build_kernel.py --slug my-run --cmd "<上面的任意命令>"
 | 项 | 位置 |
 |---|---|
 | **报告正文（协同编辑）** | **WPS 金山文档：https://www.kdocs.cn/l/cokbmUbGMYkE** — 说明见 [reports/ONLINE.md](reports/ONLINE.md) |
+| **幻灯片（15 页骨架）** | **WPS 金山文档：https://www.kdocs.cn/l/co7EkTOqxwN0**（提交物之一，11/30 前也要上传） |
 | 报告表格（可粘贴） | [`reports/tables/`](reports/tables/)（Markdown + LaTeX，脚本生成） |
 | 报告图表 | [`results/figures/`](results/figures/)，**图号与 caption 见 [CATALOG.md](results/figures/CATALOG.md)** |
 | 封面/目录结构源 | [reports/WPS-REPORT-OUTLINE.md](reports/WPS-REPORT-OUTLINE.md) |

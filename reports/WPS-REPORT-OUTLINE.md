@@ -199,3 +199,40 @@
 3. 生成分享链接（可编辑）→ 发群
 4. 8 人在线分工填写；每次结构变动回改本文件并提 PR
 5. 定稿：从金山文档导出 docx → 存 `reports/submission/`
+
+---
+
+# 九、Algorithm 1 伪代码（供第 2.3 节使用）
+
+> 官方要求第 2 节说明"技术 + 算法背景 + 如何应用"，并给出**伪代码**。直接把下面这段放进 2.3 节（可删掉 Input/Output 中的细项）。
+
+```text
+Algorithm 1  Head-only transfer-learning run
+Input : backbone b in {11 ImageNet CNNs}, dataset D in {D1, D2},
+        optimizer A in {Adam, SGD, RMSprop}, frozen split file S (train/val/test),
+        epochs E, batch size B, learning rate eta
+Output: metrics.json (10 metrics on train/val/test), 2x2 confusion matrices,
+        training curves, trained head weights
+
+ 1: load pre-trained backbone f_b with ImageNet weights; freeze all its parameters
+ 2: build head h = AvgPool2d(4,4) -> Flatten -> Linear(64) -> ReLU
+                     -> Dropout(0.5) -> Linear(2)
+ 3: initialise h with seed 42
+ 4: for epoch = 1 to E do
+ 5:     for each mini-batch (x, y) of size B drawn from the training split do
+ 6:         z    <- h( f_b(x) )                  # f_b is never updated
+ 7:         loss <- CrossEntropy( z, y )
+ 8:         update parameters of h with optimizer A at learning rate eta
+ 9:     end for
+10:     evaluate h on the validation split; keep the head state with the best validation accuracy
+11: end for
+12: restore the best head state
+13: for each split s in {train, val, test} do
+14:     compute accuracy, precision, recall, F1, MCC, kappa, AUC, mAP,
+15:             sensitivity and specificity of h on split s
+16:     compute the 2x2 confusion matrix [[TN, FP], [FN, TP]] with positive = defect
+17: end for
+18: save metrics.json, confusion matrices, training curves and the head weights
+```
+
+**写作提示**：正文里只需说清三件事 —— ① 骨干冻结、只训新头；② 头部结构与超参；③ 每个 (backbone, optimizer, dataset) 组合独立跑一次，共 66 次。

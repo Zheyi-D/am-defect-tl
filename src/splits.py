@@ -1,14 +1,14 @@
-# Author: 组长 + agent | Task: 数据扫描与划分（契约文件生成） | PR: 待提
-# Status: 本组原创实现
-"""扫描数据集 → 生成 splits/{D1,D2}.csv（全组唯一一份划分）。
+# Author: Lead + agent | Task: data scanning and splitting (contract file generation) | PR: TBD
+# Status: original implementation by this team
+"""Scan the dataset and generate splits/{D1,D2}.csv (the single split shared by the whole team).
 
-数据目录约定（Kaggle 挂载或本地都适用）：
+Data directory convention (works for both Kaggle mounts and local copies):
     <data-root>/data/D1/defect/*.JPG
     <data-root>/data/D1/nondefect/*.JPG
     <data-root>/data/D2/defect/*.png
     <data-root>/data/D2/nondefect/*.png
 
-用法：
+Usage:
     python -m src.splits --data-root /kaggle/input/datasets/kennethdeng/am-defect-v1 --out splits
 """
 
@@ -22,32 +22,33 @@ from pathlib import Path
 
 DATASETS = ["D1", "D2"]
 LABELS = ["defect", "nondefect"]
-RATIO = (0.7, 0.1, 0.2)  # train / val / test，对齐作者
+RATIO = (0.7, 0.1, 0.2)  # train / val / test, matching the authors
 SEED = 42
 
 
 def scan(data_root: Path, dataset: str) -> list[dict]:
-    """返回 [{'path': 相对路径, 'label': ..., 'source_id': 原图名去扩展名}]。"""
+    """Return [{'path': relative path, 'label': ..., 'source_id': original file name without extension}]."""
     rows: list[dict] = []
     base = Path(data_root) / "data" / dataset
     for label in LABELS:
         d = base / label
         if not d.is_dir():
-            raise FileNotFoundError(f"找不到目录：{d}")
+            raise FileNotFoundError(f"directory not found: {d}")
         for f in sorted(p for p in d.iterdir() if p.is_file()):
             rows.append({
-                # 统一用 POSIX 分隔符，保证 Windows 上生成的 csv 在 Kaggle(Linux) 也能用
+                # Always use POSIX separators so that a csv generated on Windows also works on Kaggle (Linux)
                 "path": (Path("data") / dataset / label / f.name).as_posix(),
                 "label": label,
                 "source_id": f.stem,
             })
     if not rows:
-        raise RuntimeError(f"{base} 下没有找到任何图片")
+        raise RuntimeError(f"no images found under {base}")
     return rows
 
 
 def stratified_split(rows: list[dict], seed: int = SEED) -> list[dict]:
-    """按类别分层抽 70/10/20；同一 seed 结果完全确定（按 label 固定偏移）。"""
+    """Sample 70/10/20 stratified by class; the same seed always gives exactly the same result
+    (fixed offset per label)."""
     by_label: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
         by_label[r["label"]].append(r)
@@ -75,7 +76,7 @@ def write_csv(rows: list[dict], path: Path) -> None:
 
 
 def generate_all(data_root: Path, out_dir: Path, seed: int = SEED) -> dict:
-    """生成 D1/D2 两个 csv，返回每份的统计。"""
+    """Generate the two csv files for D1/D2 and return the statistics of each."""
     stats = {}
     for ds in DATASETS:
         rows = stratified_split(scan(data_root, ds), seed)

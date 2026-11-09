@@ -15,6 +15,10 @@
 *.pdf   binary
 *.tex   text eol=lf
 
+# Shell scripts must stay LF (CRLF breaks bash); Windows batch files must stay CRLF
+*.sh    text eol=lf
+*.bat   text eol=crlf
+
 # Office 文件按二进制处理：只在定稿时放一份快照进 reports/submission/，见 reports/README.md
 *.docx  binary
 *.pptx  binary

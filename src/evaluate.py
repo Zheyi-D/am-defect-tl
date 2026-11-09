@@ -1,9 +1,11 @@
-# Author: 组长 + agent | Task: 评估与指标 | PR: 待提
-# Status: 本组原创实现。使用 sklearn.metrics 计算指标（仅调用，见 NOTICE.md）
-"""评估：10 个指标 + 混淆矩阵。
+# Author: Lead + agent | Task: evaluation and metrics | PR: TBD
+# Status: original implementation by this team. Uses sklearn.metrics to compute the metrics (calls only, see NOTICE.md)
+"""Evaluation: 10 metrics plus the confusion matrix.
 
-口径见 docs/RESULTS.md §4。**positive = defect（缺陷）**，定义反了所有指标会翻转。
-混淆矩阵约定：[[TN, FP], [FN, TP]]，行=真实，列=预测，顺序 nondefect → defect。
+Definitions are documented in docs/RESULTS.md section 4. **positive = defect**, so reversing the
+definition flips every metric.
+Confusion matrix convention: [[TN, FP], [FN, TP]], rows = true labels, columns = predictions,
+order nondefect -> defect.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ METRIC_NAMES = [
 
 
 def compute_metrics(y_true, y_prob, threshold: float = 0.5) -> dict:
-    """y_true: 0/1 的 array-like；y_prob: defect 的预测概率。返回 10 个 0–1 指标。"""
+    """y_true: array-like of 0/1; y_prob: predicted probability of defect. Returns 10 metrics in [0, 1]."""
     import numpy as np
     from sklearn.metrics import (accuracy_score, average_precision_score,
                                  cohen_kappa_score, f1_score,
@@ -42,7 +44,8 @@ def compute_metrics(y_true, y_prob, threshold: float = 0.5) -> dict:
         ap = average_precision_score(y_true, y_prob)
     except ValueError:
         ap = 0.0
-    # 只出现一个类别时 sklearn 会返回 nan（冒烟/极小测试集常见），统一记 0.0 并在日志里可见
+    # With only one class present sklearn returns nan (common for smoke tests / tiny test sets);
+    # record 0.0 consistently so it stays visible in the logs.
     if not np.isfinite(auc):
         auc = 0.0
     if not np.isfinite(ap):
@@ -60,12 +63,12 @@ def compute_metrics(y_true, y_prob, threshold: float = 0.5) -> dict:
         "sensitivity": float(recall),
         "specificity": float(specificity),
     }
-    # 浮点误差可能让值略微越过 1.0（如 1.0000000000000002），统一裁剪到 [0, 1]
+    # Floating-point error can push a value slightly above 1.0 (e.g. 1.0000000000000002); clamp to [0, 1]
     return {k: max(0.0, min(1.0, v)) if isinstance(v, float) else v for k, v in result.items()}
 
 
 def confusion_matrix_2x2(y_true, y_prob, threshold: float = 0.5) -> list[list[int]]:
-    """返回 [[TN, FP], [FN, TP]]。"""
+    """Return [[TN, FP], [FN, TP]]."""
     import numpy as np
 
     y_true = np.asarray(y_true).astype(int)
@@ -78,7 +81,7 @@ def confusion_matrix_2x2(y_true, y_prob, threshold: float = 0.5) -> list[list[in
 
 
 def plot_confusion(cm: list[list[int]], title: str, out_path) -> None:
-    """画 2×2 混淆矩阵，用于报告图。"""
+    """Draw a 2x2 confusion matrix for the report figures."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -102,7 +105,7 @@ def plot_confusion(cm: list[list[int]], title: str, out_path) -> None:
 
 
 def plot_curves(train_log: list[dict], out_path) -> None:
-    """训练/验证的 loss 与 accuracy 曲线。"""
+    """Training/validation loss and accuracy curves."""
     import matplotlib
 
     matplotlib.use("Agg")

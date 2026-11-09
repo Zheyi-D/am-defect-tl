@@ -1,6 +1,6 @@
-"""am-defect-tl — IDAT7215 Topic 4 · 3D 打印缺陷检测迁移学习复现。
+"""am-defect-tl — IDAT7215 Topic 4 · transfer-learning reproduction of 3D printing defect detection.
 
-模块划分见 README.md 第 3 节；每个文件一个 owner，改别人文件先沟通。
+Module layout is described in README.md section 3; each file has one owner, so talk to the owner before editing someone else's file.
 """
 
 __version__ = "0.1.0"

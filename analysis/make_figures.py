@@ -1,26 +1,27 @@
-# Author: jellyfishhamburger | Task: T1 报告图表生成器 | PR: 待提
-# Status: 本组原创实现。只读 results/，不修改任何 metrics.json / leaderboard.csv。
-"""生成报告第 3 节需要的全局汇总图（T1）。
+# Author: jellyfishhamburger | Task: T1 report figure generator | PR: pending
+# Status: original implementation. Reads results/ only; never modifies metrics.json / leaderboard.csv.
+"""Generate the global summary figures needed by report Section 3 (T1).
 
-输入（只读）：
+Inputs (read-only):
     results/leaderboard.csv
     results/runs/*/metrics.json
     results/runs/*/confusion_matrices.json
 
-输出：
-    results/figures/fig_accuracy_by_model.png   11 模型 × 2 数据集准确率（含论文值）
-    results/figures/fig_optimizer_heatmap.png   3 优化器消融热力图
-    results/figures/fig_confusion_grid.png      4 个代表 run 的混淆矩阵
-    results/figures/fig_delta_acc.png           我们 − 论文 的准确率差
-    results/figures/fig_ranking.png             模型准确率排名
-    results/figures/INDEX.md                    图号 / 文件 / 一句话说明
+Outputs:
+    results/figures/fig_accuracy_by_model.png   accuracy for 11 models × 2 datasets (with reported values)
+    results/figures/fig_optimizer_heatmap.png   optimizer-ablation heatmap
+    results/figures/fig_confusion_grid.png      confusion matrices of 4 representative runs
+    results/figures/fig_delta_acc.png           accuracy gap (ours − reported)
+    results/figures/fig_ranking.png             model accuracy ranking
+    results/figures/INDEX.md                    figure number / file / one-line description
 
-用法：
-    python -m analysis.make_figures                 # 全部重画
-    python -m analysis.make_figures --only 1,3      # 只画指定编号
+Usage:
+    python -m analysis.make_figures                 # redraw everything
+    python -m analysis.make_figures --only 1,3      # only the listed figure numbers
     python -m analysis.make_figures --dpi 300
 
-约束：所有数字直接读仓库文件；图中不出现任何手写常数（论文值除外，来自 leaderboard 的 paper_acc 列）。
+Constraint: every number is read directly from repo files; no hard-coded constants appear in the figures
+(except reported values, which come from the paper_acc column of leaderboard.csv).
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
 FIGDIR = RESULTS / "figures"
 
-# 与看板/报告保持一致的中文名 → 英文展示名（图里统一用英文）
+# Display names shared with the dashboard/report (figures always use English)
 DISPLAY = {
     "vgg16": "VGG16", "vgg19": "VGG19", "resnet50": "ResNet50", "resnet101": "ResNet101",
     "inception_resnet_v2": "InceptionResNetV2", "xception": "Xception",
@@ -42,7 +43,7 @@ DISPLAY = {
     "efficientnet_b7": "EfficientNet-B7", "efficientnet_v2m": "EfficientNetV2-M",
     "nasnet_large": "NASNet-Large",
 }
-# 论文里的模型顺序（大致按参数量从小到大），图里保持同一顺序便于比较
+# Model order used in the paper (roughly increasing parameter count); kept fixed for comparability
 ORDER = ["mobilenet_v2", "efficientnet_b0", "resnet50", "xception", "inception_resnet_v2",
          "efficientnet_v2m", "efficientnet_b7", "resnet101", "vgg16", "vgg19", "nasnet_large"]
 DATASETS = ["D1", "D2"]
@@ -53,7 +54,7 @@ C_PAPER = "#8C8175"
 C_ACCENT = "#2A6B57"
 GREY = "#6B7280"
 
-# 由 main() 里的 matplotlib 导入填充，避免在 import 阶段拉起绘图库（CI 不装 matplotlib/torch）
+# Filled in by main(); importing matplotlib at module import time is avoided (CI has no matplotlib/torch)
 plt = None
 
 
@@ -112,7 +113,7 @@ def style(plt):
 
 # ---------------------------------------------------------------- figures
 def fig_accuracy(models, rows, out: Path):
-    """① 11 模型 × 2 数据集 测试准确率，叠加论文报告值。"""
+    """① Test accuracy of 11 models × 2 datasets, overlaid with the reported values."""
     import numpy as np
 
     fig, ax = plt.subplots(figsize=(9.2, 3.6))
@@ -142,7 +143,7 @@ def fig_accuracy(models, rows, out: Path):
 
 
 def fig_heatmap(models, rows, out: Path):
-    """② 3 优化器消融热力图（D1 / D2 两个面板，11 模型 × 3 优化器，共用色阶）。"""
+    """② Optimizer ablation heatmap (D1 / D2 panels, 11 models × 3 optimizers, shared colour scale)."""
     import numpy as np
 
     grids = []
@@ -185,10 +186,10 @@ def fig_heatmap(models, rows, out: Path):
 
 
 def fig_confusion(models, rows, out: Path):
-    """③ 4 个代表 run 的测试集混淆矩阵。"""
+    """③ Test-set confusion matrices of 4 representative runs."""
     import numpy as np
 
-    # 代表 run：D1 最好 / D1 最差 / D2 最好 / D2 最差（按测试准确率）
+    # Representative runs: best D1 / worst D1 / best D2 / worst D2 (by test accuracy)
     d1 = [r for r in rows if r["dataset"] == "D1" and r["accuracy"] is not None]
     d2 = [r for r in rows if r["dataset"] == "D2" and r["accuracy"] is not None]
     d1.sort(key=lambda r: r["accuracy"])
@@ -224,11 +225,11 @@ def fig_confusion(models, rows, out: Path):
 
 
 def fig_delta(models, rows, out: Path):
-    """④ 我们 − 论文 的准确率差。"""
+    """④ Accuracy gap (ours − reported)."""
     import numpy as np
 
     fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.9), sharex=True)
-    # sharex=True：两个面板共用 x 轴，所以范围必须在循环外按全局极值设一次
+    # sharex=True: both panels share the x axis, so set the range once from the global extremes
     allv = [r["delta_acc"] for r in rows if r["delta_acc"] is not None]
     lo, hi = min(-0.09, min(allv) - 0.04), max(0.05, max(allv) * 1.18)
     for ax, ds in zip(axes, DATASETS):
@@ -250,7 +251,8 @@ def fig_delta(models, rows, out: Path):
         ax.grid(axis="x", zorder=0)
         ax.set_axisbelow(True)
         for b, (_, v, pf1) in zip(bars, data):
-            # 负值也把标签放在 0 线右侧：小负数条只有几像素宽，标签放左边会压到模型名
+            # Put labels for negative values on the right of the zero line too: a small negative bar is
+            # only a few pixels wide, so a left-hand label would overlap the model names
             ax.text((v if v > 0 else 0) + 0.008, b.get_y() + b.get_height() / 2, f"{v:+.3f}",
                     va="center", ha="left", fontsize=7.0,
                     color="#111827", clip_on=False,
@@ -264,7 +266,7 @@ def fig_delta(models, rows, out: Path):
 
 
 def fig_ranking(models, rows, out: Path):
-    """⑤ 模型准确率排名（每个模型取三个优化器里最好的一次）。"""
+    """⑤ Model accuracy ranking (best of the three optimizers per model)."""
     import numpy as np
 
     data = []
@@ -293,7 +295,7 @@ def fig_ranking(models, rows, out: Path):
                         annotation_clip=False)
     ax.set_yticks(y)
     ax.set_yticklabels([DISPLAY.get(m, m) for m, _ in data])
-    ax.invert_yaxis()          # 最好的排在最上面（matplotlib 的 y=0 默认在底部）
+    ax.invert_yaxis()          # best on top (matplotlib's y=0 is at the bottom by default)
     ax.set_xlabel("Test accuracy (best of 3 optimizers)")
     ax.set_xlim(0.90, 1.005)
     ax.grid(axis="x", zorder=0)
@@ -310,56 +312,62 @@ INDEX_ROWS = [
     ("Figure 1", "fig_accuracy_by_model.png",
      "Test accuracy of 11 ImageNet backbones on D1 and D2 (Adam, seed 42). Bars are our runs; short horizontal ticks "
      "are the values reported by Ahsan et al. (2024). The y-axis starts at 0.40.",
-     "① 11 模型 × 2 数据集准确率柱状图，短横线为论文值；纵轴从 0.40 起，读图时注意"),
+     "① Accuracy bars for 11 models × 2 datasets; short ticks are reported values. The y-axis starts at 0.40, "
+     "so mind the truncated scale when reading."),
     ("Figure 2", "fig_optimizer_heatmap.png",
      "Optimizer ablation: test accuracy of each backbone under Adam / SGD / RMSprop with a frozen backbone and "
      "head-only training (lr = 1e-3, 30 epochs). Colour scale spans the observed range.",
-     "② 3 优化器消融热力图（D1 / D2 两栏）；色阶按实际最小值拉伸"),
+     "② Optimizer ablation heatmap (D1 / D2 panels); the colour scale is stretched to the observed minimum."),
     ("Figure 3", "fig_confusion_grid.png",
      "Confusion matrices of the best and worst run per dataset (test split). Rows = true label, columns = predicted; "
      "each panel is shaded to its own maximum.",
-     "③ 4 个代表 run 的混淆矩阵（每数据集最好 / 最差）"),
+     "③ Confusion matrices of 4 representative runs (best / worst per dataset)."),
     ("Figure 4", "fig_delta_acc.png",
      "Accuracy gap between our reproduction and the reported values (Adam runs). Pink labels mark the authors' "
      "EfficientNet-B0 / B7 / V2-M rows, whose reported F1 is 0.000 (majority-class collapse, D1 accuracy 0.4909) — "
      "those gaps are not evidence that our implementation is better.",
-     "④ 我们 vs 论文的 Δaccuracy；浅红标注是作者侧塌成多数类的三行"),
+     "④ Our Δaccuracy vs. the paper; light-red labels mark the three rows where the authors collapsed to the "
+     "majority class."),
     ("Figure 5", "fig_ranking.png",
      "Model ranking by test accuracy (best of the three optimizers). The line joins the best D1 and D2 run of each "
      "backbone; the right-hand column names the optimizer that produced the D1 best run. D1 test n=54, so ties "
      "within ~0.02 are not statistically meaningful.",
-     "⑤ 模型准确率排名；右侧注明 D1 最优的优化器"),
+     "⑤ Model accuracy ranking; the right-hand column names the optimizer behind the best D1 run."),
 ]
 
 
 def write_index(out: Path, made: list[str]):
     lines = [
-        "# Figure index（报告第 3 节用图）",
+        "# Figure index (figures used in report Section 3)",
         "",
-        "> 由 `python -m analysis.make_figures` 生成，**不要手改**。数字全部读自 `results/leaderboard.csv` 与",
-        "> `results/runs/*/{metrics,confusion_matrices}.json`；论文值来自 `docs/paper_results.csv`。",
+        "> Generated by `python -m analysis.make_figures`; **do not edit by hand**. All numbers are read from",
+        "> `results/leaderboard.csv` and `results/runs/*/{metrics,confusion_matrices}.json`; reported values come",
+        "> from `docs/paper_results.csv`.",
         "",
-        "| 图号 | 文件 | Caption (EN) | 说明 |",
+        "| Figure | File | Caption (EN) | Notes |",
         "|---|---|---|---|",
     ]
-    for no, fname, cap, zh in INDEX_ROWS:
-        mark = "" if (out / fname).exists() else " *(未生成)*"
-        lines.append(f"| {no} | [`{fname}`]({fname}){mark} | {cap} | {zh} |")
+    for no, fname, cap, notes in INDEX_ROWS:
+        mark = "" if (out / fname).exists() else " *(not generated)*"
+        lines.append(f"| {no} | [`{fname}`]({fname}){mark} | {cap} | {notes} |")
     lines += [
         "",
-        "## 生成命令",
+        "## Commands",
         "",
         "```bash",
-        "python -m analysis.make_figures            # 全部",
-        "python -m analysis.make_figures --only 1,3 # 只画 1、3",
+        "python -m analysis.make_figures            # everything",
+        "python -m analysis.make_figures --only 1,3 # figures 1 and 3 only",
         "```",
         "",
-        "## 口径与已知问题",
+        "## Conventions and known issues",
         "",
-        "- 图 1 / 4 用 **Adam** run 与论文的 Adam 行对比；每个模型只比同一优化器，避免拿我们最好的和论文最差的比。",
-        "- D1 测试集只有 54 张：错 1 张 = 1.8 个百分点，所以 0.98 与 1.00 的差别不要过度解读。",
-        "- 论文的 EfficientNet-B0 / B7 / V2-M 报告 F1 = 0（全部预测为多数类），图 4 用浅红底标出，不能读作\"我们更强\"。",
-        "- 图 3 选的是每个数据集准确率最高 / 最低的 run，属于**示意**，不是随机抽样。",
+        "- Figures 1 and 4 compare **Adam** runs against the authors' Adam rows; each model is compared under the",
+        "  same optimizer, so we never pit our best run against the authors' worst.",
+        "- The D1 test set has only 54 images: one mistake = 1.8 percentage points, so do not over-read the",
+        "  difference between 0.98 and 1.00.",
+        "- The paper reports F1 = 0 for EfficientNet-B0 / B7 / V2-M (everything predicted as the majority class);",
+        "  Figure 4 shades these in light red, which must not be read as \"we are better\".",
+        "- Figure 3 shows the highest / lowest accuracy run of each dataset; it is **illustrative**, not a random sample.",
         "",
     ]
     (out / "INDEX.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
@@ -367,7 +375,7 @@ def write_index(out: Path, made: list[str]):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", default="", help="逗号分隔的图号，如 1,3；留空=全部")
+    ap.add_argument("--only", default="", help="comma-separated figure numbers, e.g. 1,3; empty = all")
     ap.add_argument("--out", type=Path, default=FIGDIR)
     ap.add_argument("--dpi", type=int, default=200)
     args = ap.parse_args()
@@ -393,7 +401,7 @@ def main() -> None:
     made = []
     for no in sorted(wanted):
         if no not in jobs:
-            print(f"[figures] 跳过未知图号 {no}")
+            print(f"[figures] skipping unknown figure number {no}")
             continue
         jobs[no](models, rows, args.out)
         name = {1: "fig_accuracy_by_model.png", 2: "fig_optimizer_heatmap.png",
@@ -402,7 +410,7 @@ def main() -> None:
         print(f"[figures] {no} -> {name}", flush=True)
 
     write_index(args.out, made)
-    print(f"[figures] {len(made)} 张图 + INDEX.md → {args.out}")
+    print(f"[figures] {len(made)} figures + INDEX.md → {args.out}")
 
 
 if __name__ == "__main__":

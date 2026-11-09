@@ -1,21 +1,25 @@
-# Author: jellyfishhamburger | Task: T3 效率测量（CPU） | PR: 待提
-# Status: 本组原创实现
-"""效率测量：参数量 / FLOPs / 单张推理时延 → results/efficiency.csv + fig_efficiency.png（T3）。
+# Author: jellyfishhamburger | Task: T3 efficiency measurement (CPU) | PR: pending
+# Status: original implementation
+"""Efficiency measurement: parameter count / FLOPs / single-image latency → results/efficiency.csv + fig_efficiency.png (T3).
 
-为什么值得做：题目背景是"3D 打印在线质检"，只有准确率不够，还要证明轻量模型可部署。
+Why this matters: the project is about "online quality inspection for 3D printing", so accuracy alone is not
+enough — we also need to show that lightweight models are deployable.
 
-用法：
-    python -m analysis.efficiency                 # 全部 11 个骨干，CPU
+Usage:
+    python -m analysis.efficiency                 # all 11 backbones on CPU
     python -m analysis.efficiency --models vgg16,mobilenet_v2
     python -m analysis.efficiency --iters 30
 
-说明：
-    - 骨干第一次构建会从 timm 下载 ImageNet 权重（100–600 MB/模型），之后走缓存；
-      本任务只测量**推理**成本，权重是否预训练对时延的影响可以忽略，但为了与训练时的模型一致，仍用 pretrained=True。
-    - GPU 时延本机无法测（无 GPU），CSV 里写 N/A，交给 Kenneth 在 Kaggle 补。
-    - **测量时必须让机器空载**：并行下载权重 / 跑 LIME 会把均值拖高 40–100%（实测 EfficientNetV2-M
-      344.9 → 161.8 ms）。重测前先确认没有别的 python 进程在跑。
-    - 不写任何 src/ 下的文件，不改 metrics.json。
+Notes:
+    - Building a backbone for the first time downloads ImageNet weights from timm (100–600 MB per model),
+      cached afterwards. This task measures **inference** cost only; whether the weights are pretrained
+      barely affects latency, but pretrained=True keeps the model identical to training.
+    - GPU latency cannot be measured on this machine (no GPU); the CSV stores N/A for Kenneth to fill in
+      on Kaggle.
+    - **Measure on an idle machine**: parallel weight downloads / LIME runs inflate the mean by 40–100%
+      (measured: EfficientNetV2-M went from 161.8 to 344.9 ms). Make sure no other python process is
+      running before re-measuring.
+    - Writes nothing under src/ and never modifies metrics.json.
 """
 
 from __future__ import annotations
@@ -44,14 +48,14 @@ COLUMNS = ["model", "n_params", "n_params_trainable", "gflops",
 
 
 def measure_params(model) -> tuple[int, int]:
-    """(总参数量, 可训练参数量)。冻结骨干后 trainable 只有分类头。"""
+    """(total parameters, trainable parameters). With a frozen backbone only the head is trainable."""
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return int(total), int(trainable)
 
 
 def measure_flops(model, input_size: int = 224) -> float:
-    """GFLOPs（前向，batch=1）。优先用 torch 自带的 flop counter，避免额外依赖。"""
+    """GFLOPs (forward, batch=1). Prefer torch's built-in FLOP counter to avoid extra dependencies."""
     import torch
 
     x = torch.zeros(1, 3, input_size, input_size)
@@ -69,7 +73,7 @@ def measure_flops(model, input_size: int = 224) -> float:
 
 def measure_latency(model, input_size: int = 224, device: str = "cpu",
                     warmup: int = 5, iters: int = 20) -> dict:
-    """返回 {mean_ms, p95_ms}：warmup 次后计时 iters 次。"""
+    """Return {mean_ms, p95_ms}: time iters runs after warmup passes."""
     import torch
 
     model.eval()
@@ -91,7 +95,7 @@ def measure_latency(model, input_size: int = 224, device: str = "cpu",
 
 
 def draw_figure(rows: list[dict], out: Path) -> None:
-    """fig_efficiency.png：CPU 单张时延（横条）+ 参数量标注。"""
+    """fig_efficiency.png: CPU single-image latency (horizontal bars) annotated with parameter counts."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -131,17 +135,17 @@ def draw_figure(rows: list[dict], out: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", default="all", help="逗号分隔；all=11 个骨干")
-    ap.add_argument("--iters", type=int, default=20, help="计时重复次数（默认 20）")
+    ap.add_argument("--models", default="all", help="comma-separated; all = 11 backbones")
+    ap.add_argument("--iters", type=int, default=20, help="number of timed repetitions (default 20)")
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--out", type=Path, default=RESULTS / "efficiency.csv")
     ap.add_argument("--replot", action="store_true",
-                    help="不重新测量，只用已有的 efficiency.csv 重画图")
+                    help="do not re-measure; replot from the existing efficiency.csv")
     args = ap.parse_args()
 
     if args.replot:
         if not args.out.exists():
-            raise SystemExit(f"{args.out} 不存在，先跑一次完整测量")
+            raise SystemExit(f"{args.out} does not exist; run a full measurement first")
         with args.out.open(encoding="utf-8-sig", newline="") as fh:
             rows = []
             for r in csv.DictReader(fh):
@@ -150,7 +154,7 @@ def main() -> None:
                 rows.append(r)
         FIGDIR.mkdir(parents=True, exist_ok=True)
         draw_figure(rows, FIGDIR)
-        print(f"[efficiency] 重新绘图 → {FIGDIR / 'fig_efficiency.png'}")
+        print(f"[efficiency] replotted → {FIGDIR / 'fig_efficiency.png'}")
         return
 
     import torch
@@ -160,7 +164,7 @@ def main() -> None:
     wanted = None if args.models == "all" else {m.strip() for m in args.models.split(",")}
     models = [m for m in ORDER if wanted is None or m in wanted]
     if not models:
-        raise SystemExit(f"没有匹配的模型：{args.models}")
+        raise SystemExit(f"no matching models: {args.models}")
 
     rows = []
     for i, name in enumerate(models, 1):
@@ -169,7 +173,7 @@ def main() -> None:
             model = TransferModel(name, pretrained=True, freeze="all_conv", input_size=224)
             model.eval()
         except Exception as exc:
-            print(f"[efficiency] {i}/{len(models)} {name} 构建失败：{type(exc).__name__}: {exc}", flush=True)
+            print(f"[efficiency] {i}/{len(models)} {name} failed to build: {type(exc).__name__}: {exc}", flush=True)
             continue
         total, trainable = measure_params(model)
         gflops = measure_flops(model)
@@ -188,7 +192,7 @@ def main() -> None:
               flush=True)
 
     if not rows:
-        raise SystemExit("一个模型都没测成")
+        raise SystemExit("no model was measured successfully")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8", newline="") as fh:
@@ -197,11 +201,11 @@ def main() -> None:
         for r in rows:
             w.writerow({k: ("" if isinstance(r.get(k), float) and r.get(k) != r.get(k) else r.get(k, ""))
                         for k in COLUMNS})
-    print(f"[efficiency] {len(rows)} 行 → {args.out}")
+    print(f"[efficiency] {len(rows)} rows → {args.out}")
 
     FIGDIR.mkdir(parents=True, exist_ok=True)
     draw_figure([r for r in rows], FIGDIR)
-    print(f"[efficiency] 图 → {FIGDIR / 'fig_efficiency.png'}")
+    print(f"[efficiency] figure → {FIGDIR / 'fig_efficiency.png'}")
 
 
 if __name__ == "__main__":

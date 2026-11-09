@@ -1,19 +1,21 @@
-# 配置模板：复制成 configs/<model>.yaml 后改 model 字段即可。
-# owner：谁负责该模型谁维护这个文件；改共享字段（input_size / freeze / head）要先在地基组 PR 里改。
+# Configuration template: copy it to configs/<model>.yaml and change the model field.
+# owner: whoever is responsible for that model maintains this file; changes to shared fields
+# (input_size / freeze / head) must go through a PR in the foundation group first.
 
 model: "<vgg16|vgg19|resnet50|resnet101|inception_resnet_v2|xception|mobilenet_v2|efficientnet_b0|efficientnet_b7|efficientnet_v2m|nasnet_large>"
 pretrained: imagenet
-freeze: all_conv            # 论文设定：冻结全部卷积层，只训新分类头
+freeze: all_conv            # paper setting: freeze every convolution layer and train only the new head
 
-# 论文同款 head（Keras: AveragePooling2D(4,4) -> Flatten -> Dense -> Dropout(0.5) -> Dense(softmax)）
+# Paper-style head (Keras: AveragePooling2D(4,4) -> Flatten -> Dense -> Dropout(0.5) -> Dense(softmax))
 head:
   pooling: [4, 4]
-  dense_units: 64           # ← 来自作者 notebook 的 Dense(64, relu)（论文正文未写，见 docs/AUTHOR_CODE.md §3）
+  dense_units: 64           # taken from Dense(64, relu) in the authors' notebook (not stated in the paper, see docs/AUTHOR_CODE.md section 3)
   dropout: 0.5
 
-# 训练时的在线增强：作者 notebook 用 ImageDataGenerator(rotation_range=15, fill_mode="nearest")
-# 注意 D2 本身已是离线增强过的数据集，再叠在线增强 = 双重增强，需在报告里说明
-# 主矩阵先关（快、且便于缓存特征）；单独做一组"开/关在线增强"的对照实验写进报告
+# Online augmentation during training: the authors' notebook uses ImageDataGenerator(rotation_range=15, fill_mode="nearest")
+# Note that D2 is already an offline-augmented dataset, so adding online augmentation means double augmentation,
+# which must be explained in the report.
+# The main matrix keeps it off (faster, and it makes feature caching easier); a separate on/off ablation goes in the report.
 train_aug:
   rotation_degrees: 15
   fill_mode: nearest
@@ -26,17 +28,17 @@ num_classes: 2
 
 optimizer: adam             # adam | sgd | rmsprop
 lr: 0.001
-batch_size: 8               # 论文 Study One = 8；Study Two = 50（显存不足改 32 + 梯度累积）
-epochs: 30                  # 论文 Study One = 30；Study Two = 50
+batch_size: 8               # paper Study One = 8; Study Two = 50 (use 32 + gradient accumulation if memory is short)
+epochs: 30                  # paper Study One = 30; Study Two = 50
 weight_decay: 0.0
-momentum: 0.9               # 仅 sgd 有效
+momentum: 0.9               # only effective for sgd
 
 early_stopping:
-  enabled: false            # 论文未使用；若启用必须写进报告
+  enabled: false            # not used by the paper; if enabled it must be documented in the report
   patience: 5
 
 seed: 42
 num_workers: 2
-amp: true                   # 混合精度，Kaggle T4 可开
+amp: true                   # mixed precision, can be enabled on a Kaggle T4
 
 output_dir: "results/runs"

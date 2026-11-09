@@ -1,18 +1,19 @@
-# Author: 组长 + agent | Task: Grad-CAM 可解释性 + 预测示例图 | PR: 待提
-# Status: 本组原创实现（CAM 算法自己实现，仅用 matplotlib 上色）
-"""生成两类图（报告图 + demo 素材）：
-    1. results/figures/gradcam_<run_id>.png  —— 原图 + Grad-CAM 热力图叠加，标注 true/pred/置信度
-    2. results/figures/predict_<run_id>.png  —— 原图 + 预测标签 + 置信度 + 对错标记
+# Author: team lead + agent | Task: Grad-CAM explainability + prediction example figures | PR: pending
+# Status: original implementation (CAM algorithm implemented here; matplotlib only handles colour mapping)
+"""Generate two kinds of figures (report figures + demo assets):
+    1. results/figures/gradcam_<run_id>.png  — original image + Grad-CAM heatmap overlay, with true/pred/confidence
+    2. results/figures/predict_<run_id>.png  — original image + predicted label + confidence + correct/wrong mark
 
-前置条件：对应 run 目录下要有 model.pt（由 `src.train --save-weights` 生成，只存分类头）。
+Prerequisite: the corresponding run directory must contain model.pt (produced by `src.train --save-weights`,
+head only).
 
-原理（Grad-CAM）：
-    让梯度流到骨干输出的最后一层特征图 F（C×H×W），
-    对目标类别的 logit 求导，权重 w_c = mean(∂y/∂F_c)，
-    CAM = ReLU(Σ_c w_c · F_c)，归一化到 0–1 后上采样叠加到原图。
+How it works (Grad-CAM):
+    Let gradients flow to the last feature map F (C×H×W) of the backbone output,
+    differentiate the target-class logit, giving weights w_c = mean(∂y/∂F_c),
+    CAM = ReLU(Σ_c w_c · F_c), normalised to 0–1 and upsampled onto the original image.
 
-用法：
-    python -m analysis.gradcam --data-root <数据根> --cache-root /kaggle/temp/cache \
+Usage:
+    python -m analysis.gradcam --data-root <data root> --cache-root /kaggle/temp/cache \
         --models vgg16,mobilenet_v2 --dataset D1 --n-per-class 4
 """
 
@@ -30,7 +31,7 @@ from src.models import TransferModel
 
 
 def load_trained(run_dir: Path, device):
-    """从 model.pt 复原模型（委托给 analysis.checkpoint：兼容全局池化存档的头部）。"""
+    """Restore a model from model.pt (delegates to analysis.checkpoint: handles global-pooling heads)."""
     from analysis.checkpoint import load_model
 
     return load_model(run_dir, device=device)
@@ -55,8 +56,8 @@ def load_image(path: Path, size: int):
 
 
 def compute_cam(model, x: torch.Tensor, class_idx: int = 1):
-    """返回 (CAM 0–1 的 H×W numpy, softmax 概率 numpy)。"""
-    x = x.clone().requires_grad_(True)  # 让梯度能流到特征图
+    """Return (H×W numpy CAM scaled to 0–1, softmax probabilities numpy)."""
+    x = x.clone().requires_grad_(True)  # let gradients reach the feature map
     feat = model.net.forward_features(x)
     feat.retain_grad()
     logits = model.head(feat)
@@ -65,7 +66,7 @@ def compute_cam(model, x: torch.Tensor, class_idx: int = 1):
 
     grads = feat.grad[0]
     feats = feat[0]
-    weights = grads.mean(dim=(1, 2))                     # 每个通道的重要性
+    weights = grads.mean(dim=(1, 2))                     # importance of each channel
     cam = torch.relu((weights[:, None, None] * feats).sum(0))
     cam = cam.detach().cpu().numpy()
     cam -= cam.min()
@@ -111,7 +112,7 @@ def main() -> None:
     rows = read_split(Path(args.splits_dir) / f"{args.dataset}.csv", "test")
     samples = pick_samples(rows, args.n_per_class)
     if not samples:
-        raise RuntimeError("测试集为空，检查 splits 目录")
+        raise RuntimeError("test split is empty; check the splits directory")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     wanted = None if args.models == "all" else {m.strip() for m in args.models.split(",")}
@@ -121,7 +122,7 @@ def main() -> None:
             continue
         if wanted is None or p.name.split("__")[0] in wanted:
             run_dirs.append(p)
-    print(f"[gradcam] 找到 {len(run_dirs)} 个带 model.pt 的 run", flush=True)
+    print(f"[gradcam] found {len(run_dirs)} runs with model.pt", flush=True)
 
     for run_dir in run_dirs:
         model, ckpt = load_trained(run_dir, device)
@@ -137,7 +138,7 @@ def main() -> None:
             trues.append(r["label"])
 
         n = len(samples)
-        # (1) Grad-CAM 图
+        # (1) Grad-CAM figure
         fig, axes = plt.subplots(1, n, figsize=(2.4 * n, 3.0))
         axes = np.atleast_1d(axes)
         for ax, im, cam, p, t in zip(axes, ims, cams, probs, trues):
@@ -151,7 +152,7 @@ def main() -> None:
         fig.savefig(args.out / f"gradcam_{run_dir.name}.png", dpi=140)
         plt.close(fig)
 
-        # (2) 预测示例图
+        # (2) Prediction example figure
         fig, axes = plt.subplots(1, n, figsize=(2.4 * n, 2.7))
         axes = np.atleast_1d(axes)
         for ax, im, p, t in zip(axes, ims, probs, trues):
