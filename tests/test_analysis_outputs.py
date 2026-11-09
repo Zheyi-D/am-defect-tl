@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
 import subprocess
 import sys
@@ -31,8 +32,12 @@ def leaderboard() -> list[dict]:
 
 
 def run_module(*args: str, timeout: int = 120) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, *args], cwd=ROOT, capture_output=True, text=True,
-                          timeout=timeout)
+    # Windows 下 text=True 会用系统代码页（GBK）解码子进程输出，含中文时直接抛 UnicodeDecodeError。
+    # 统一用 UTF-8 解码，并让子进程也输出 UTF-8。
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    return subprocess.run([sys.executable, *args], cwd=ROOT, capture_output=True,
+                          text=True, encoding="utf-8", errors="replace",
+                          env=env, timeout=timeout)
 
 
 class TestExportedTables(unittest.TestCase):

@@ -362,7 +362,7 @@ def write_index(out: Path, made: list[str]):
         "- 图 3 选的是每个数据集准确率最高 / 最低的 run，属于**示意**，不是随机抽样。",
         "",
     ]
-    (out / "INDEX.md").write_text("\n".join(lines), encoding="utf-8")
+    (out / "INDEX.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
 def main() -> None:

@@ -112,9 +112,11 @@ def to_latex(title: str, label: str, header: list[str], rows: list[list[str]],
 
 def write_pair(stem: str, title: str, label: str, header: list[str], rows: list[list[str]],
                note_md: str = "", note_tex: str = "", align: str | None = None) -> None:
-    (OUT / f"{stem}.md").write_text(to_markdown(title, header, rows, note_md), encoding="utf-8")
+    # newline="\n"：Windows 上默认会把换行转成 CRLF，导致和仓库里（LF）不一致、每次跑都产生 diff
+    (OUT / f"{stem}.md").write_text(to_markdown(title, header, rows, note_md),
+                                    encoding="utf-8", newline="\n")
     (OUT / f"{stem}.tex").write_text(to_latex(title, label, header, rows, note_tex, align),
-                                     encoding="utf-8")
+                                     encoding="utf-8", newline="\n")
 
 
 # ---------------------------------------------------------------- tables
