@@ -24,7 +24,7 @@ status:
   runs_completed: 66
   runs_expected: 66
   checkpoints: 10       # results/runs/*/model.pt (head only; 5 on D1+Adam, 5 on D2+Adam)
-  figures: 24
+  figures: 22       # results/figures/*.png（报告图号见 results/figures/CATALOG.md）
   leakage_experiment: done   # results/leakage.csv, results/figures/fig_leakage_combined.png
   analysis_tasks: done       # T1-T6 delivered by jellyfishhamburger (PR #8); GPU latency by Kenneth
   unimplemented: []
@@ -118,8 +118,10 @@ status:
 | 分析模块 T1–T6 | ✅ 全部实现（图表 / 表格 / 效率 / LIME / demo / 工程收尾），PR #8 已合并 |
 | 效率表 | ✅ `results/efficiency.csv` 含 CPU 与 **GPU 时延**（Tesla T4 实测，11/11 行）；`reports/tables/table5_efficiency.*` 已带 GPU 列 |
 | Gradio demo | ✅ `analysis/demo_app.py` + `docs/DEMO.md`（本地 CPU 运行，无需 GPU） |
-| 报告图表/表格 | ✅ `results/figures/fig_*.png`（6 张）+ `reports/tables/table{1..5}_*.{md,tex}` |
-| 报告 / PPT | ❌ 不在本仓库（由非代码成员在外部文档完成） |
+| 报告图表/表格 | ✅ `results/figures/` 22 张 PNG（报告图号见 **CATALOG.md**）+ `reports/tables/table{1..5}_*.{md,tex}` |
+| 报告正文 | 🔗 在线协作文档（WPS 金山文档）：https://www.kdocs.cn/l/cokbmUbGMYkE —— 文档里只有封面与标题，正文由 8 位成员撰写；入口见 `reports/ONLINE.md` |
+| PPT | ❌ 尚未建（下一步同法建 15 页骨架） |
+| 图表缺口 | ⚠️ Fig. 1（方法流程图）与 Table 6（泄漏结果表）待生成 |
 
 ## 9. 已知坑（踩过的）
 

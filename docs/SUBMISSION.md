@@ -10,7 +10,7 @@
 
 | # | 交付物 | 从哪来 | 谁负责 |
 |---|---|---|---|
-| 1 | 报告 `.docx` | Word Online 导出 → 存 `reports/submission/` | 统稿人 |
+| 1 | 报告 `.docx` | 金山文档（WPS）导出 → 存 `reports/submission/` | 统稿人 |
 | 2 | 口头报告 `.pptx` | PowerPoint 导出 → 存 `reports/submission/` | PPT 负责人 |
 | 3 | 源码 `.zip` + README | 本仓库 `git archive` 生成（见 §四） | 组长 |
 
@@ -33,7 +33,7 @@
 
 ## 三、图表清单（报告引用用）
 
-- 图：`results/figures/fig_*.png` —— 图号与英文 caption 见 `results/figures/INDEX.md`
+- 图：`results/figures/fig_*.png` —— 图号与英文 caption 见 `results/figures/CATALOG.md`
 - 表：`reports/tables/table{1..5}_*.md` —— 表号固定为 Table 1–5
 - 正文交叉引用格式：`Figure 3` / `Table 2`（不要写"下图""上表"）
 

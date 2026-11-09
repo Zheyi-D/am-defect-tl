@@ -8,7 +8,7 @@
 > 同步规则：改结构 → 改这里并提 PR；只改文字 → 直接在金山文档改。
 >
 > 相关文件：[reports/README.md](README.md)（归档约定）、[docs/SUBMISSION.md](../docs/SUBMISSION.md)（提交清单）、
-> [results/figures/INDEX.md](../results/figures/INDEX.md)（图号与 caption）。
+> [results/figures/CATALOG.md](../results/figures/CATALOG.md)（图号与 caption 的单一权威版本）。
 
 ---
 
@@ -91,18 +91,20 @@
 
 ## Figures
 
+> 图号以 [`results/figures/CATALOG.md`](../results/figures/CATALOG.md) 为准（含 5 张备用图）。
+
 | 编号 | 文件 | Caption（英文，可直接用） | 章节 |
 |---|---|---|---|
-| Fig. 1 | `results/figures/fig_pipeline.png` ⚠️**待生成** | Overview of the transfer-learning pipeline: frozen ImageNet backbone, paper-style classification head, and the 66-run experimental matrix. | 2 |
-| Fig. 2 | `fig_accuracy_by_model.png` | Test accuracy of eleven backbones on D1 and D2, with the values reported by Ahsan et al. overlaid. | 3.1 |
-| Fig. 3 | `fig_optimizer_heatmap.png` | Effect of optimizer choice (Adam, SGD, RMSprop) on test accuracy, for D1 (left) and D2 (right). | 3.2 |
-| Fig. 4 | `fig_delta_acc.png` | Difference in test accuracy between our reproduction and the reported values; shaded bars mark runs where the authors' F1 is zero. | 3.3 |
-| Fig. 5 | `fig_ranking.png` | Backbones ranked by D1 test accuracy, annotated with the best-performing optimizer. | 3.1 |
-| Fig. 6 | `fig_confusion_grid.png` | Confusion matrices of the best and worst run on each dataset. | 3.1 |
-| Fig. 7 | `fig_leakage_combined.png` | Leakage control experiment: random split versus source-grouped split on a re-augmented dataset, under two training-set regimes. | 3.4 |
-| Fig. 8 | `gradcam_vgg16__D1__adam__s42.png` | Grad-CAM visualisations for representative defect and non-defect samples. | 3.5 |
+| Fig. 1 | `results/figures/fig_pipeline.png` ⚠️**待生成** | Overview of the transfer-learning pipeline: frozen backbone, paper-style head, and the 66-run matrix. | 2 |
+| Fig. 2 | `fig_accuracy_by_model.png` | Test accuracy of eleven backbones on D1 and D2, with reported values overlaid. | 3.1 |
+| Fig. 3 | `fig_optimizer_heatmap.png` | Effect of optimizer choice on test accuracy, D1 (left) and D2 (right). | 3.2 |
+| Fig. 4 | `fig_confusion_grid.png` | Confusion matrices of the best and worst run per dataset. | 3.1 |
+| Fig. 5 | `fig_delta_acc.png` | Accuracy difference between our reproduction and the reported values. | 3.3 |
+| Fig. 6 | `fig_ranking.png` | Backbones ranked by D1 test accuracy, annotated with the best optimizer. | 3.1 |
+| Fig. 7 | `fig_leakage_combined.png` | Leakage control experiment: random vs source-grouped split, two training regimes. | 3.4 |
+| Fig. 8 | `gradcam_vgg16__D1__adam__s42.png` | Grad-CAM visualisations for representative samples. | 3.5 |
 | Fig. 9 | `lime_vgg16__D1__adam__s42.png` | LIME super-pixel explanations for three checkpoints. | 3.5 |
-| Fig. 10 | `fig_efficiency.png` | Parameter count versus single-image latency; markers annotated with CPU inference cost. | 3.6 |
+| Fig. 10 | `fig_efficiency.png` | Parameter count versus single-image latency. | 3.6 |
 
 ## Tables
 

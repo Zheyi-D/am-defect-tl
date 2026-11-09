@@ -19,7 +19,7 @@
 | `reports/WPS-REPORT-OUTLINE.md` | 封面/目录/图表清单的**结构源**（改结构就改这里并提 PR） | 组长 |
 | `reports/README.md` | 本文件 | — |
 
-图不在本目录 —— 全部在 **`results/figures/`**，图号与 caption 见 [`results/figures/INDEX.md`](../results/figures/INDEX.md)。
+图不在本目录 —— 全部在 **`results/figures/`**，**图号与 caption 见 [`results/figures/CATALOG.md`](../results/figures/CATALOG.md)**。
 
 ---
 
@@ -46,7 +46,7 @@ reports/submission/
 └── README.txt                             # 三件套清单 + 提交时间
 ```
 
-**只在定稿时提交一次。** 过程中的每一版请留在 Word Online 的版本历史里，不要反复提交 docx。
+**只在定稿时提交一次。** 过程中的每一版请留在金山文档（WPS）的版本历史里，不要反复提交 docx。
 
 ---
 

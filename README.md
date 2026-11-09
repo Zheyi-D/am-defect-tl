@@ -15,7 +15,7 @@
 |---|---|
 | **结果看板**（66 个 run 的可交互页面，单文件、零外链） | <https://jellyfishhamburger.github.io/am-defect-tl/> · 源文件 `docs/index.html` |
 | **现场推理 demo**（上传图 → 概率 + Grad-CAM，本机跑） | `python -m analysis.demo_app --offline` → <http://127.0.0.1:7860> |
-| 报告用图 / 表 | `results/figures/INDEX.md`（含英文 caption）· `reports/tables/`（md + tex） |
+| 报告用图 / 表 | `results/figures/CATALOG.md`（图号 + 英文 caption）· `reports/tables/`（md + tex） |
 
 > 看板是**静态网页**（不是训练服务，也不是后端 API）；推理 demo 只在本机跑，不上线。
 
@@ -122,8 +122,8 @@ splits/              # 冻结的数据划分 csv（D1.csv / D2.csv）
 results/
   runs/<run_id>/     #   每个 run：metrics.json + 混淆矩阵 + 训练曲线 + model.pt
   leaderboard.csv    #   66 行结果总表（脚本生成，禁止手改）
-  figures/           #   Grad-CAM / LIME / 汇总图，索引见 INDEX.md
-reports/             # 报告与演示的归档（正文在 Word Online，这里只放素材与定稿快照）
+  figures/           #   Grad-CAM / LIME / 汇总图；报告用图号见 CATALOG.md
+reports/             # 报告与演示的归档（正文在金山文档（WPS），这里只放素材与定稿快照）
   tables/            #   报告表格：5 张 × (Markdown + LaTeX)，脚本生成，勿手改
   submission/        #   定稿快照：docx / pptx / 源码 zip（只在定稿时放一次，见 docs/SUBMISSION.md）
 docs/                # 数据说明、结果格式、作者代码分析、论文数值对照、任务书、交接单、提交清单
@@ -210,7 +210,7 @@ python tools/build_kernel.py --slug my-run --cmd "<上面的任意命令>"
 |---|---|
 | **报告正文（协同编辑）** | **WPS 金山文档：https://www.kdocs.cn/l/cokbmUbGMYkE** — 说明见 [reports/ONLINE.md](reports/ONLINE.md) |
 | 报告表格（可粘贴） | [`reports/tables/`](reports/tables/)（Markdown + LaTeX，脚本生成） |
-| 报告图表 | [`results/figures/`](results/figures/)，图号与 caption 见 [INDEX.md](results/figures/INDEX.md) |
+| 报告图表 | [`results/figures/`](results/figures/)，**图号与 caption 见 [CATALOG.md](results/figures/CATALOG.md)** |
 | 封面/目录结构源 | [reports/WPS-REPORT-OUTLINE.md](reports/WPS-REPORT-OUTLINE.md) |
 | 提交清单 | [docs/SUBMISSION.md](docs/SUBMISSION.md) |
 

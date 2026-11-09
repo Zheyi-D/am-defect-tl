@@ -70,7 +70,7 @@ python tools/build_report_docx.py --out report_draft.docx
 |---|---|
 | 所有数字 | `results/leaderboard.csv`、`results/leakage.csv`、`results/efficiency.csv` |
 | 表格（可直接粘贴） | `reports/tables/table*.md` |
-| 图 | `results/figures/`，图号与 caption 见 `INDEX.md` |
+| 图 | `results/figures/`，**图号与 caption 见 `CATALOG.md`** |
 | 章节内容要点 / 字数预算 | `reports/WPS-REPORT-OUTLINE.md` |
 | 方法细节 | `README.md`、`docs/DATA.md`、`docs/AUTHOR_CODE.md` |
 | 提交要求 | `docs/SUBMISSION.md` |
