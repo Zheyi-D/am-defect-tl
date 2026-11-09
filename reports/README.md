@@ -12,6 +12,7 @@
 |---|---|---|
 | `reports/tables/` | 5 张报告表格（`table1…table5` × `.md` + `.tex`） | `python -m analysis.export_tables` 自动生成，**不要手改** |
 | `reports/submission/` | **定稿快照**：最终 `.docx` / `.pptx` / 源码 `.zip`（11/29 放一次即可） | 组长在定稿当天放入 |
+| `reports/WPS-REPORT-OUTLINE.md` | **WPS/Kdocs 共享文档的封面 + 目录 + 图表清单**（结构源；改章节结构就改这里并提 PR） | 组长 |
 | `reports/README.md` | 本文件 | — |
 
 图不在本目录 —— 全部在 **`results/figures/`**，图号与 caption 见 [`results/figures/INDEX.md`](../results/figures/INDEX.md)。
