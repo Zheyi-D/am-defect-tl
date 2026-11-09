@@ -123,6 +123,7 @@ results/
   runs/<run_id>/     #   每个 run：metrics.json + 混淆矩阵 + 训练曲线 + model.pt
   leaderboard.csv    #   66 行结果总表（脚本生成，禁止手改）
   figures/           #   Grad-CAM / LIME / 汇总图；报告用图号见 CATALOG.md
+submissions/         # 6 位同学的提交区（P1–P4 / S1 / S2，只写自己那一格）
 reports/             # 报告与演示的归档（正文在金山文档（WPS），这里只放素材与定稿快照）
   tables/            #   报告表格：5 张 × (Markdown + LaTeX)，脚本生成，勿手改
   submission/        #   定稿快照：docx / pptx / 源码 zip（只在定稿时放一次，见 docs/SUBMISSION.md）

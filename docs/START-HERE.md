@@ -108,6 +108,29 @@
 3. 在 `CONTRIBUTIONS.md` §二 自己那一行填上"写了什么"
 4. 交给 P1 统稿（P1 负责最后一遍数字与格式核对）
 
+## 6.5 你的提交区（把成品放这里）
+
+在线文档是"协同写作区"，仓库里的 **[`submissions/<你的代号>/`](../submissions/)** 是"成品归档区"。
+
+| 你的代号 | 目录 | 允许的文件 |
+|---|---|---|
+| P1 | `submissions/P1/` | `P1_abstract.md`、`P1_conclusion.md`、`status.md` |
+| P2 | `submissions/P2/` | `P2_introduction.md`、`P2_references.md`、`status.md` |
+| P3 | `submissions/P3/` | `P3_project_description.md`、`status.md` |
+| P4 | `submissions/P4/` | `P4_results.md`、`P4_figure_table_placement.md`、`status.md` |
+| S1 | `submissions/S1/` | `S1_slide_outline.md`、`S1_speaker_notes.md`、`S1_rehearsal_log.md`、`status.md` |
+| S2 | `submissions/S2/` | `S2_demo_plan.md`、`S2_recording_notes.md`、`S2_qa_cards.md`、`status.md` |
+
+**只允许写自己目录里的文件**，完整规则见 [`submissions/README.md`](../submissions/README.md)。
+
+```bash
+git add submissions/<你的代号>
+git commit -m "<代号>: draft"
+git push origin HEAD:submissions/<你的代号>
+```
+
+> 分支名固定为 `submissions/<代号>`，**永远不要 push `main`**，也不要动 `src/`、`analysis/`、`results/`、`splits/`、`docs/`。
+
 ## 7. PPT / 演示流程（S1、S2）
 
 1. S1：打开 https://www.kdocs.cn/l/co7EkTOqxwN0 ，15 页已按结果逻辑排好；每页补要点 + 备注里的讲稿与时间
