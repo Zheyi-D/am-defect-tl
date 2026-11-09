@@ -1,5 +1,7 @@
 # 交接文档：jellyfishhamburger → Kenneth
 
+> ⚠️ **本文件是历史交接记录（2026-11-09 之前）**，其中的状态数字可能已过时；当前状态一律以 [AGENTS.md §8](../AGENTS.md) 为准。
+
 > **这份文件就是交接单。** 每个任务完成后由 jellyfishhamburger（她的 agent）填写对应小节，
 > Kenneth 按「待 Kenneth 在 Kaggle 执行」跑 GPU 验证并回填结果，然后把状态改为 ✅。
 

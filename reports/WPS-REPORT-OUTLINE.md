@@ -57,34 +57,35 @@
 # 二、目录（Table of Contents）
 
 > 结构按官方《Group Project Guidelines》第 1–4 节的必答项对齐（1.1–1.4 / 2.1–2.4 / 结论含建议）。
+> **分工**：P1–P4 写文档，S1–S2 做 PPT 与演示录制（明细见 `docs/START-HERE.md`）。
 
 | 章节 | 内容 | 目标字数 | 图表 | 负责人 |
 |---|---|---|---|---|
-| — | Cover page（课程/班级/组号/姓名学号/字数） | — | — | 统稿 |
-| — | Table of Contents | — | — | 统稿 |
-| — | Abstract | 200 | — | 统稿 |
-| — | List of Figures / List of Tables | — | — | 统稿 |
-| **1** | **Introduction** | 600 | — | B |
-| 1.1 | Motivation（研究动机） | 200 | — | B |
-| 1.2 | Objectives（项目目的） | 150 | — | B |
-| 1.3 | Background（项目背景） | 150 | — | B |
-| 1.4 | Tools and Environment（工具） | 100 | — | B |
-| **2** | **Project Description** | 1,000 | Fig. 1, Table 1, Algorithm 1 | C |
-| 2.1 | Main Objectives | 150 | — | C |
-| 2.2 | Dataset and Problem Formulation | 300 | Table 1 | C |
-| 2.3 | Techniques and Algorithms（含**伪代码 Algorithm 1**） | 400 | Algorithm 1 | C |
-| 2.4 | Training Protocol and Evaluation Metrics | 150 | — | C |
-| **3** | **Results and Discussion** | 1,400 | Fig. 2–10, Table 2–6 | D + E |
-| 3.1 | Overall Model Comparison | 350 | Fig. 2, 4, 6；Table 2–3 | D |
-| 3.2 | Optimizer Ablation | 250 | Fig. 3 | D |
-| 3.3 | Comparison with the Reported Results | 300 | Fig. 5；Table 4 | D |
-| 3.4 | Data-Leakage Control Experiment（自主贡献） | 250 | Fig. 7；Table 6 | E |
-| 3.5 | Explainability: Grad-CAM and LIME | 150 | Fig. 8–9 | E |
-| 3.6 | Deployment Cost | 100 | Fig. 10；Table 5 | E |
-| **4** | **Conclusion and Recommendations** | 350 | — | 统稿 |
+| — | Cover page（课程/班级/组号/姓名学号/字数） | — | — | P1 |
+| — | Table of Contents | — | — | P1 |
+| — | Abstract | 200 | — | P1 |
+| — | List of Figures / List of Tables | — | — | P1 |
+| **1** | **Introduction** | 600 | — | P2 |
+| 1.1 | Motivation（研究动机） | 200 | — | P2 |
+| 1.2 | Objectives（项目目的） | 150 | — | P2 |
+| 1.3 | Background（项目背景） | 150 | — | P2 |
+| 1.4 | Tools and Environment（工具） | 100 | — | P2 |
+| **2** | **Project Description** | 1,000 | Fig. 1, Table 1, Algorithm 1 | P3 |
+| 2.1 | Main Objectives | 150 | — | P3 |
+| 2.2 | Dataset and Problem Formulation | 300 | Table 1 | P3 |
+| 2.3 | Techniques and Algorithms（含**伪代码 Algorithm 1**） | 400 | Algorithm 1 | P3 |
+| 2.4 | Training Protocol and Evaluation Metrics | 150 | — | P3 |
+| **3** | **Results and Discussion** | 1,400 | Fig. 2–10, Table 2–6 | P4 |
+| 3.1 | Overall Model Comparison | 350 | Fig. 2, 4, 6；Table 2–3 | P4 |
+| 3.2 | Optimizer Ablation | 250 | Fig. 3 | P4 |
+| 3.3 | Comparison with the Reported Results | 300 | Fig. 5；Table 4 | P4 |
+| 3.4 | Data-Leakage Control Experiment（自主贡献） | 250 | Fig. 7；Table 6 | P4 |
+| 3.5 | Explainability: Grad-CAM and LIME | 150 | Fig. 8–9 | P4 |
+| 3.6 | Deployment Cost | 100 | Fig. 10；Table 5 | P4 |
+| **4** | **Conclusion and Recommendations** | 350 | — | P1 |
 | — | Individual Contributions（8 × 300–600 词） | 不计入 | — | 全员 |
-| — | References（IEEE ≥15，正文需有 in-text 引用） | 不计入 | — | B |
-| — | Appendix A：完整 66 结果表 | 不计入 | Table A1 | D |
+| — | References（IEEE ≥15，正文需有 in-text 引用） | 不计入 | — | P2 |
+| — | Appendix A：完整 66 结果表 | 不计入 | Table A1 | P4 |
 | — | Appendix B：复现命令与环境 | 不计入 | — | Kenneth |
 
 **字数合计（计入部分）**：200 + 600 + 1,000 + 1,400 + 350 = **3,550 词**
@@ -99,7 +100,7 @@
 
 | 编号 | 文件 | Caption（英文，可直接用） | 章节 |
 |---|---|---|---|
-| Fig. 1 | `results/figures/fig_pipeline.png` ⚠️**待生成** | Overview of the transfer-learning pipeline: frozen backbone, paper-style head, and the 66-run matrix. | 2 |
+| Fig. 1 | `results/figures/fig_pipeline.png` | Overview of the transfer-learning pipeline: frozen backbone, paper-style head, and the 66-run matrix. | 2 |
 | Fig. 2 | `fig_accuracy_by_model.png` | Test accuracy of eleven backbones on D1 and D2, with reported values overlaid. | 3.1 |
 | Fig. 3 | `fig_optimizer_heatmap.png` | Effect of optimizer choice on test accuracy, D1 (left) and D2 (right). | 3.2 |
 | Fig. 4 | `fig_confusion_grid.png` | Confusion matrices of the best and worst run per dataset. | 3.1 |
@@ -119,7 +120,7 @@
 | Table 3 | `table3_d2_results.md` | Full results on D2: 11 backbones × 3 optimizers (10 metrics each). | 3.1 |
 | Table 4 | `table4_delta.md` | Accuracy difference against the reported values, aggregated per backbone. | 3.3 |
 | Table 5 | `table5_efficiency.md` | Inference cost per image (params, FLOPs, CPU and GPU latency). | 3.6 |
-| Table 6 | **待生成**：`results/leakage.csv` 转表 | Leakage control experiment: random versus source-grouped split. | 3.4 |
+| Table 6 | `table6_leakage.md` | Leakage control experiment: random versus source-grouped split. | 3.4 |
 
 ---
 

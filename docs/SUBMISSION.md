@@ -89,7 +89,7 @@
 ## 五、图表清单
 
 - 图：`results/figures/` —— **图号与英文 caption 见 `results/figures/CATALOG.md`**
-- 表：`reports/tables/table{1..5}_*.md` —— 表号固定为 Table 1–5（Table 6 泄漏表待生成）
+- 表：`reports/tables/table{1..6}_*.md` —— 表号固定为 Table 1–6（含 Table 6 泄漏对照表）
 - 正文交叉引用格式：`Figure 3` / `Table 2`（不要写"下图""上表"）
 
 ---

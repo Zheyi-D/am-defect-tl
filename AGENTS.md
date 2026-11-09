@@ -119,9 +119,9 @@ status:
 | 效率表 | ✅ `results/efficiency.csv` 含 CPU 与 **GPU 时延**（Tesla T4 实测，11/11 行）；`reports/tables/table5_efficiency.*` 已带 GPU 列 |
 | Gradio demo | ✅ `analysis/demo_app.py` + `docs/DEMO.md`（本地 CPU 运行，无需 GPU） |
 | 报告图表/表格 | ✅ `results/figures/` 23 张 PNG（报告图号见 **CATALOG.md**）+ `reports/tables/table{1..6}_*.{md,tex}` |
-| 报告正文 | 🔗 在线协作文档（WPS 金山文档）：https://www.kdocs.cn/l/cokbmUbGMYkE —— 文档里只有封面与标题，正文由 8 位成员撰写；入口见 `reports/ONLINE.md` |
+| 报告正文 | 🔗 在线协作文档（WPS 金山文档）：https://www.kdocs.cn/l/cokbmUbGMYkE —— 文档里只有封面与标题，正文由 4 位成员撰写（P1–P4），入口见 `docs/START-HERE.md` 与 `reports/ONLINE.md` |
 | 幻灯片 | 🔗 15 页骨架（WPS 金山文档）：https://www.kdocs.cn/l/co7EkTOqxwN0 —— 生成脚本 `tools/build_slides_pptx.py`；**PPT 也是 11/30 提交物之一** |
-| 图表缺口 | Fig. 1 已生成（`fig_pipeline.png`）；Table 6（泄漏结果表）由 `analysis/export_tables.py` 生成 |
+| 图表完整性 | ✅ 无缺口：Fig. 1–10 全部就绪（`fig_pipeline.png` 为 Fig. 1），Table 1–6 全部生成 |
 
 ## 9. 已知坑（踩过的）
 
@@ -155,7 +155,20 @@ status:
 - 文档类改动（`docs/`、README）可以直接提 PR，不需要跑实验
 - 提交信息用 `feat(scope): ...` / `fix(scope): ...` / `docs: ...`
 
-## 12. jellyfishhamburger 的任务入口
+## 12. 报告 / PPT 同学的任务入口
+
+如果当前使用者负责**写报告、做 PPT 或录演示**（不写代码）：
+
+> **先读 [docs/START-HERE.md](docs/START-HERE.md)** —— 4 人写文档 + 2 人 PPT/录屏的分工、三条铁律
+> （数字只认仓库、不改代码与结果、不确定就写不确定）、取材路由表、六个必须写对的事实、可直接复制的提示词。
+
+最容易犯的三个错：
+
+1. 自己估算或编造数字 → 一律以 `results/leaderboard.csv` / `reports/tables/` 为准
+2. 把"泄漏对照实验"写成"我们证明了数据泄漏"（实际是**阴性结论**）
+3. 把 D2 说成独立数据集（D2 是 D1 的数据增强版）
+
+## 13. jellyfishhamburger 的任务入口
 
 如果你的使用者是 **jellyfishhamburger**（GitHub: `jellyfishhamburger`，负责**不需要 GPU 训练**的分析与前端工作）：
 

@@ -23,6 +23,7 @@ from pathlib import Path
 MEMBERS = 8
 
 SECTIONS: list[tuple[str, int]] = [
+    ("Table of Contents", 1),
     ("Abstract", 1),
     ("List of Figures", 1),
     ("List of Tables", 1),

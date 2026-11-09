@@ -12,7 +12,7 @@ assignees: ""
 ## 对应契约
 - 划分文件：`splits/D1.csv`
 - 超参：`configs/vgg19.yaml`
-- 结果格式：[docs/RESULTS.md](../docs/RESULTS.md)
+- 结果格式：[docs/RESULTS.md](../../docs/RESULTS.md)
 
 ## 验收标准
 - [ ] `results/runs/vgg19__D1__{adam,sgd,rmsprop}__s42/metrics.json` 各一份

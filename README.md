@@ -206,6 +206,8 @@ python tools/build_kernel.py --slug my-run --cmd "<上面的任意命令>"
 
 ## 9. 报告与在线文档
 
+> **写报告 / 做 PPT 的同学（及其 AI agent）请先读 [docs/START-HERE.md](docs/START-HERE.md)** —— 分工、铁律、取材路由、给 AI 的提示词。
+
 | 项 | 位置 |
 |---|---|
 | **报告正文（协同编辑）** | **WPS 金山文档：https://www.kdocs.cn/l/cokbmUbGMYkE** — 说明见 [reports/ONLINE.md](reports/ONLINE.md) |
