@@ -37,7 +37,7 @@
 
 > 分工与取材说明见 [docs/START-HERE.md](docs/START-HERE.md)。写完请把自己的行补上。
 
-| 代号 | 成员 | 负责 | 目标字数 | 状态 |
+| 代号 | 成员 | 负责 | 参考字数 | 状态 |
 |---|---|---|---|---|
 | **P1** | （姓名） | Abstract + §4 Conclusion & Recommendations + **统稿**（格式/页码/图表编号/字数/导出 docx） | 200 + 350 | ⬜ |
 | **P2** | （姓名） | §1 Introduction（1.1–1.4）+ References（IEEE ≥15，含正文 in-text 引用） | 600 | ⬜ |
