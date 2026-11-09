@@ -56,32 +56,36 @@
 
 # 二、目录（Table of Contents）
 
-| 章节 | 内容 | 目标字数 | 对应图表 | 负责人 |
+> 结构按官方《Group Project Guidelines》第 1–4 节的必答项对齐（1.1–1.4 / 2.1–2.4 / 结论含建议）。
+
+| 章节 | 内容 | 目标字数 | 图表 | 负责人 |
 |---|---|---|---|---|
-| — | **Cover page** | — | — | 统稿 |
-| — | **Abstract** | 200 | — | 统稿 |
+| — | Cover page（课程/班级/组号/姓名学号/字数） | — | — | 统稿 |
+| — | Table of Contents | — | — | 统稿 |
+| — | Abstract | 200 | — | 统稿 |
 | — | List of Figures / List of Tables | — | — | 统稿 |
 | **1** | **Introduction** | 600 | — | B |
-| 1.1 | Background: 3D printing defect inspection in industry | 250 | — | B |
-| 1.2 | Why transfer learning for small datasets | 200 | — | B |
-| 1.3 | Our task: reproduce Ahsan et al. (2024) | 150 | — | B |
-| **2** | **Project Description** | 1,000 | Fig. 1 | C |
-| 2.1 | Dataset: D1 (271 real) and D2 (3,017 augmented) | 300 | Table 1 | C |
-| 2.2 | Eleven ImageNet backbones (frozen) | 250 | — | C |
-| 2.3 | Classification head and training protocol | 300 | Fig. 1, Algorithm 1 | C |
-| 2.4 | Evaluation metrics and experimental matrix | 150 | — | C |
-| **3** | **Results and Discussion** | 1,400 | Fig. 2–10, Table 2–5 | D + E |
-| 3.1 | Overall model comparison (11 × 2 datasets) | 350 | Fig. 2, Fig. 5, Table 2–3 | D |
-| 3.2 | Optimizer ablation (Adam / SGD / RMSprop) | 250 | Fig. 3 | D |
-| 3.3 | Agreement with the paper and where it breaks down | 300 | Fig. 4, Table 4 | D |
-| 3.4 | Data-leakage control experiment (our contribution) | 250 | Fig. 7, Table 6 | E |
-| 3.5 | Explainability: Grad-CAM and LIME | 150 | Fig. 8, Fig. 9 | E |
-| 3.6 | Deployment cost: params, FLOPs, latency | 100 | Fig. 10, Table 5 | E |
-| **4** | **Conclusion** | 350 | — | 统稿 |
-| — | **Individual Contributions**（8 × 300–600 词） | 不计入 | — | 全员 |
-| — | **References**（IEEE） | 不计入 | — | B |
-| — | **Appendix A** 完整 66 结果表 | 不计入 | Table A1 | D |
-| — | **Appendix B** 复现命令与环境 | 不计入 | — | Kenneth |
+| 1.1 | Motivation（研究动机） | 200 | — | B |
+| 1.2 | Objectives（项目目的） | 150 | — | B |
+| 1.3 | Background（项目背景） | 150 | — | B |
+| 1.4 | Tools and Environment（工具） | 100 | — | B |
+| **2** | **Project Description** | 1,000 | Fig. 1, Table 1, Algorithm 1 | C |
+| 2.1 | Main Objectives | 150 | — | C |
+| 2.2 | Dataset and Problem Formulation | 300 | Table 1 | C |
+| 2.3 | Techniques and Algorithms（含**伪代码 Algorithm 1**） | 400 | Algorithm 1 | C |
+| 2.4 | Training Protocol and Evaluation Metrics | 150 | — | C |
+| **3** | **Results and Discussion** | 1,400 | Fig. 2–10, Table 2–6 | D + E |
+| 3.1 | Overall Model Comparison | 350 | Fig. 2, 4, 6；Table 2–3 | D |
+| 3.2 | Optimizer Ablation | 250 | Fig. 3 | D |
+| 3.3 | Comparison with the Reported Results | 300 | Fig. 5；Table 4 | D |
+| 3.4 | Data-Leakage Control Experiment（自主贡献） | 250 | Fig. 7；Table 6 | E |
+| 3.5 | Explainability: Grad-CAM and LIME | 150 | Fig. 8–9 | E |
+| 3.6 | Deployment Cost | 100 | Fig. 10；Table 5 | E |
+| **4** | **Conclusion and Recommendations** | 350 | — | 统稿 |
+| — | Individual Contributions（8 × 300–600 词） | 不计入 | — | 全员 |
+| — | References（IEEE ≥15，正文需有 in-text 引用） | 不计入 | — | B |
+| — | Appendix A：完整 66 结果表 | 不计入 | Table A1 | D |
+| — | Appendix B：复现命令与环境 | 不计入 | — | Kenneth |
 
 **字数合计（计入部分）**：200 + 600 + 1,000 + 1,400 + 350 = **3,550 词**
 
