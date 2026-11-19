@@ -406,6 +406,17 @@ table.log tr.empty td{color:#5a6a7d;padding:16px 11px;text-align:center}
 
 
 
+
+/* ---- no horizontal overflow anywhere ---- */
+html,body{overflow-x:hidden !important;max-width:100vw !important}
+.gradio-container,.gradio-container .main,.gradio-container .contain,
+.gradio-container .wrap,.grid3,.grid3 > *{overflow-x:hidden !important;min-width:0 !important}
+.summary{grid-template-columns:repeat(2,1fr) !important}
+.stat{min-width:0 !important}
+.stat .l{font-size:8px !important;letter-spacing:.08em !important}
+.logwrap table.log{min-width:0 !important;table-layout:fixed !important;width:100% !important}
+.logwrap table.log th,.logwrap table.log td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 /* ---- force full viewport width ---- */
 html,body{margin:0 !important;padding:0 !important;width:100% !important;max-width:100% !important}
 gradio-app,gradio-app > div{width:100% !important;max-width:100% !important;display:block !important}
