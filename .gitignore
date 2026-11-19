@@ -48,3 +48,6 @@ kaggle/
 
 # 交接文档的 PDF 是生成物（源文件是 docs/HANDOVER.md）
 docs/HANDOVER*.pdf
+
+# runtime artefact of analysis/demo_client.py
+results/client_inspection_log.csv
