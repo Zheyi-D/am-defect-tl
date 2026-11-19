@@ -72,3 +72,6 @@ reports/_slide_*.jpg
 # Office lock files
 reports/~$*
 ~$*.pptx
+
+# keep the ablation summary table (the run dirs stay ignored)
+!/results_ablation/ABLATION.md

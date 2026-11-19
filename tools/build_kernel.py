@@ -65,15 +65,18 @@ print("[runner] exit code:", rc, flush=True)
 
 # Move the results to /kaggle/working/results so kaggle kernels output can download them
 # If training already wrote /kaggle/working/results, skip the copy (the paths are the same)
-src = os.path.join(code_dir, "results")
-dst = os.path.join(WORK, "results")
-if os.path.isdir(src) and os.path.abspath(src) != os.path.abspath(dst):
-    shutil.copytree(src, dst, dirs_exist_ok=True)
-if os.path.isdir(dst):
-    n = sum(len(files) for _, _, files in os.walk(dst))
-    print("[runner] results ->", dst, "files:", n, flush=True)
-else:
-    print("[runner] WARN: no results dir produced", flush=True)
+found_any = False
+for name in ("results", "results_ablation"):
+    src = os.path.join(code_dir, name)
+    dst = os.path.join(WORK, name)
+    if os.path.isdir(src) and os.path.abspath(src) != os.path.abspath(dst):
+        shutil.copytree(src, dst, dirs_exist_ok=True)
+    if os.path.isdir(dst):
+        found_any = True
+        n = sum(len(files) for _, _, files in os.walk(dst))
+        print("[runner] output ->", dst, "files:", n, flush=True)
+if not found_any:
+    print("[runner] WARN: no results/results_ablation dir produced", flush=True)
 sys.exit(rc)
 '''
 

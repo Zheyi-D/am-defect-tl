@@ -527,28 +527,28 @@ def s21(prs, page, total):
 # ---------------------------------------------------------------- 22 ablation
 def s22(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    chrome(slide, "04 · Analysis", "How much is the pre-training actually worth? (no-transfer ablation)", page, total)
-    stat_cards(slide, [("0.9826", "ImageNet + frozen (our method)"),
-                       ("【TBD】", "random init + frozen"),
-                       ("【TBD】", "random init, all params trained")],
-               M, 1.95, 11.88, 1.55, value_size=26, label_size=9)
+    chrome(slide, "04 · Analysis", "What does freezing cost? The no-transfer ablation", page, total)
+    stat_cards(slide, [("1.0000", "ImageNet + frozen (our method)"),
+                       ("0.5000", "random init + frozen"),
+                       ("1.0000", "random init, all params trained")],
+               M, 1.92, 11.88, 1.45, value_size=25, label_size=9)
+    text(slide, M, 3.50, 11.88, 0.28,
+         "D1 test accuracy, mean over Adam / SGD / RMSprop (12 runs, same splits, same head, same epochs)",
+         size=9.5, color=MUTED)
     bullets(slide, [
-        "Same data | identical splits, head, optimizer and epochs",
-        "Only one variable | the backbone starts from ImageNet weights or from noise",
-        "Random + frozen | isolates the value of the weights themselves",
-        "Random + full | the from-scratch baseline for a 189-image dataset",
-    ], M, 3.80, 6.0, 2.4, size=11.5, gap=10)
-    box(slide, 7.05, 3.75, 5.55, 1.10, fill=CARD_2, line=BORDER, lw=0.8, radius=0.05)
-    text(slide, 7.28, 3.88, 5.1, 0.3, "STATUS", size=9.5, color=AMBER, bold=True)
-    text(slide, 7.28, 4.18, 5.05, 0.6,
-         "12 runs (2 initialisations × 3 optimizers × 2 datasets) executing on Kaggle.",
-         size=10.5, color=INK, spacing=1.1)
-    box(slide, 7.05, 5.00, 5.55, 1.30, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
-    text(slide, 7.28, 5.14, 5.1, 0.3, "WHY THIS IS THE KEY CONTROL", size=9.5, color=ACCENT, bold=True)
-    text(slide, 7.28, 5.44, 5.05, 0.8,
-         "If random-initialised models collapse while the frozen ones stay near 1.00, then the accuracy "
-         "comes from the ImageNet weights — not from the architecture or the head.",
-         size=10, color=INK, spacing=1.12)
+        "Frozen random features collapse | 0.5000 = predicting the majority class, F1 = 0.67, MCC = 0",
+        "So freezing only works because of ImageNet | the weights, not the head, carry the signal",
+        "But end-to-end training also hits 1.0000 | with 2.2 M trainable parameters and 30 epochs",
+        "D2 shows the same pattern | 0.995 frozen, 0.772 random-frozen, 0.995 from scratch",
+    ], M, 3.95, 6.05, 2.5, size=11, gap=9)
+    box(slide, 7.00, 3.92, 5.60, 2.50, fill=CARD_2, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, 7.22, 4.06, 5.15, 0.3, "WHAT THIS MEANS FOR DEPLOYMENT", size=9.5, color=ACCENT, bold=True)
+    text(slide, 7.22, 4.40, 5.15, 1.85,
+         "Pre-training neither adds nor removes accuracy on this dataset — the task is easy enough that a "
+         "scratch model reaches the ceiling too. What pre-training buys is cost: 33-82 k trainable parameters "
+         "and about 30 s per run, instead of 2.2 M parameters and several minutes. That is why we ship the "
+         "frozen variant.",
+         size=10.5, color=INK, spacing=1.14)
 
 
 # ---------------------------------------------------------------- 23 demo
@@ -585,7 +585,7 @@ def s24(prs, page, total):
     text(slide, M + 0.25, 2.05, 5.3, 0.32, "FINDINGS", size=9.5, color=GREEN, bold=True)
     bullets(slide, [
         "Frozen features are enough | 11 backbones, 66 runs, mean test accuracy 0.98",
-        "Transfer, not architecture | the ranking is flat; the weights do the work",
+        "Pre-training buys cost, not accuracy | from scratch also reaches 1.00 end-to-end",
         "Deploy small | MobileNetV2 matches VGG16 at 1/58 the parameters",
     ], M + 0.25, 2.42, 5.3, 1.8, size=11, gap=10, marker=GREEN)
     box(slide, 6.85, 1.90, 5.75, 2.45, fill=CARD, line=BORDER, lw=0.8, radius=0.05)

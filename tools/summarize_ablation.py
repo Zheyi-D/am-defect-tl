@@ -47,7 +47,9 @@ def load_runs(root: Path) -> list[dict]:
         if len(parts) < 4:
             continue
         model, dataset, optimizer = parts[0], parts[1], parts[2]
-        init = "transfer" if len(parts) == 4 else parts[3]
+        # run ids look like  model__dataset__optimizer__s42  or  ...__s42__rand_frozen
+        tail = [x for x in parts[3:] if x in ("rand_frozen", "rand_full", "transfer")]
+        init = tail[0] if tail else "transfer"
         test = (m.get("metrics") or {}).get("test") or {}
         if not test:
             continue
