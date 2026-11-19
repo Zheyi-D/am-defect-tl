@@ -51,3 +51,7 @@ docs/HANDOVER*.pdf
 
 # runtime artefact of analysis/demo_client.py
 results/client_inspection_log.csv
+
+# testset/ : 657 张测试图片（约 170 MB），只有 README 进 Git
+/testset/*
+!/testset/README.md
