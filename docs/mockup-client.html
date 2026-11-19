@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintGuard · Surface Inspection</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --line:#e4eaf2; --line-soft:#eef2f7;
+    --ink:#0f1e33; --ink-2:#334155; --muted:#6b7b90;
+    --brand:#1d3a5f; --brand-2:#2a5c8f; --accent:#0ea5e9;
+    --pass:#127a4b; --pass-bg:#e7f6ee; --pass-line:#bfe8d2;
+    --fail:#bf2c24; --fail-bg:#fdeceb; --fail-line:#f6cdc9;
+    --review:#a86408; --review-bg:#fdf4e4; --review-line:#f3ddb4;
+    --radius:16px; --shadow:0 1px 2px rgba(15,30,51,.05), 0 8px 24px -12px rgba(15,30,51,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px 64px}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 0 14px;border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{
+    width:34px;height:34px;border-radius:9px;background:linear-gradient(150deg,var(--brand),var(--brand-2));
+    display:grid;place-items:center;box-shadow:0 4px 10px -4px rgba(29,58,95,.55);
+  }
+  .mark svg{width:18px;height:18px}
+  .brand-name{font-weight:700;letter-spacing:-.2px;font-size:16px}
+  .brand-sub{font-size:12px;color:var(--muted);letter-spacing:.02em}
+  .topbar-right{display:flex;align-items:center;gap:18px;font-size:13px;color:var(--muted)}
+  .topbar-right a{color:var(--muted);text-decoration:none}
+  .topbar-right a:hover{color:var(--brand)}
+  .pill{
+    font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--brand);background:#eaf1f9;border:1px solid #d6e3f1;
+    padding:3px 8px;border-radius:99px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:34px 0 26px;max-width:660px}
+  .hero h1{margin:0 0 10px;font-size:33px;line-height:1.18;letter-spacing:-.7px;font-weight:700}
+  .hero p{margin:0;color:var(--ink-2);font-size:15.5px}
+
+  /* ---------- mockup state switch ---------- */
+  .statebar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#fffbea;border:1px dashed #e7d9a8;border-radius:12px;
+    padding:10px 14px;margin:0 0 22px;font-size:12.5px;color:#8a6d1b;
+  }
+  .statebar strong{font-weight:700}
+  .state-chip{
+    border:1px solid #e0cf9a;background:#fff;color:#7a5f14;border-radius:8px;
+    padding:3px 10px;font:inherit;font-size:12px;cursor:pointer;
+  }
+  .state-chip:hover{background:#fff6d9}
+  .state-chip.on{background:#7a5f14;color:#fff;border-color:#7a5f14}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:22px;align-items:start}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr} .hero h1{font-size:27px} }
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-pad{padding:20px}
+
+  /* ---------- upload ---------- */
+  .drop{
+    border:1.5px dashed #c9d5e4;border-radius:13px;background:#fbfdff;
+    padding:30px 20px;text-align:center;transition:.15s ease;
+  }
+  .drop:hover{border-color:var(--accent);background:#f7fcff}
+  .drop-ico{
+    width:44px;height:44px;border-radius:12px;background:#eef6fd;color:var(--brand-2);
+    display:grid;place-items:center;margin:0 auto 12px;
+  }
+  .drop-ico svg{width:22px;height:22px}
+  .drop-main{font-weight:600;font-size:14.5px}
+  .drop-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+
+  .row-label{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+  .row-label .lab{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .row-label .hint{font-size:12px;color:var(--muted)}
+
+  .samples{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .thumb{
+    position:relative;aspect-ratio:1;border-radius:11px;overflow:hidden;
+    border:1px solid var(--line);background:#0d0b0f;cursor:pointer;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95}
+  .thumb:hover{border-color:var(--accent)}
+  .thumb.sel{outline:2px solid var(--accent);outline-offset:1px}
+  .thumb span{
+    position:absolute;left:6px;bottom:6px;font-size:10.5px;font-weight:600;
+    background:rgba(9,15,25,.62);color:#fff;padding:1px 6px;border-radius:5px;
+  }
+
+  .btn-main{
+    width:100%;margin-top:18px;border:0;border-radius:12px;cursor:pointer;
+    background:linear-gradient(180deg,var(--brand-2),var(--brand));color:#fff;
+    font:inherit;font-size:15px;font-weight:650;letter-spacing:.01em;
+    padding:14px 18px;box-shadow:0 6px 16px -8px rgba(29,58,95,.7);
+  }
+  .btn-main:hover{filter:brightness(1.06)}
+  .btn-main:disabled{opacity:.55;cursor:default}
+
+  .segwrap{margin-top:18px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#f1f5fa;border:1px solid var(--line-soft);padding:5px;border-radius:11px}
+  .seg button{
+    border:0;background:transparent;border-radius:8px;padding:8px 4px;cursor:pointer;
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);
+  }
+  .seg button.on{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(15,30,51,.12)}
+  .seg-note{margin:9px 2px 0;font-size:12px;color:var(--muted)}
+
+  .privacy{
+    display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:16px;
+    border-top:1px solid var(--line-soft);font-size:12px;color:var(--muted);
+  }
+  .privacy svg{width:14px;height:14px;flex:none;color:var(--pass)}
+
+  /* ---------- result ---------- */
+  .result{border-radius:var(--radius);padding:18px 20px;border:1px solid var(--pass-line);background:var(--pass-bg)}
+  .result .tag{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pass)}
+  .result .tag .dot{width:9px;height:9px;border-radius:99px;background:var(--pass)}
+  .verdict{display:flex;align-items:baseline;gap:12px;margin:10px 0 2px}
+  .verdict b{font-size:34px;line-height:1;letter-spacing:-1px;color:var(--pass)}
+  .verdict em{font-style:normal;font-size:13px;color:var(--pass);opacity:.85}
+  .result .say{font-size:13.5px;color:#185c3c;margin-top:6px}
+
+  .result.is-fail{border-color:var(--fail-line);background:var(--fail-bg)}
+  .result.is-fail .tag,.result.is-fail .verdict b,.result.is-fail .verdict em{color:var(--fail)}
+  .result.is-fail .tag .dot{background:var(--fail)}
+  .result.is-fail .say{color:#8f231c}
+
+  .result.is-review{border-color:var(--review-line);background:var(--review-bg)}
+  .result.is-review .tag,.result.is-review .verdict b,.result.is-review .verdict em{color:var(--review)}
+  .result.is-review .tag .dot{background:var(--review)}
+  .result.is-review .say{color:#7c4b06}
+
+  .conf{margin-top:16px}
+  .conf-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .bar{height:8px;border-radius:99px;background:rgba(15,30,51,.09);overflow:hidden}
+  .bar i{display:block;height:100%;width:98.4%;border-radius:99px;background:var(--pass)}
+  .is-fail .bar i{background:var(--fail);width:91.2%}
+  .is-review .bar i{background:var(--review);width:54%}
+
+  .divider{height:1px;background:var(--line-soft);margin:18px 0}
+
+  .loc-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .loc-head .lab{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .link-btn{
+    border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--brand);padding:6px 11px;
+  }
+  .link-btn:hover{border-color:var(--accent);color:var(--brand-2)}
+  .loc-box{
+    margin-top:12px;position:relative;border-radius:12px;overflow:hidden;background:#0c0a10;
+    aspect-ratio:16/10;border:1px solid var(--line);
+  }
+  .loc-box img{width:100%;height:100%;object-fit:cover;opacity:.92}
+  .heat{
+    position:absolute;inset:0;mix-blend-mode:screen;
+    background:radial-gradient(circle at 51% 44%, rgba(255,58,38,.92) 0%, rgba(255,132,0,.62) 24%, rgba(255,205,0,.3) 42%, rgba(0,0,0,0) 64%);
+    filter:blur(6px);
+  }
+  .loc-cap{position:absolute;left:10px;bottom:9px;font-size:11px;color:#fff;background:rgba(8,12,20,.6);padding:2px 7px;border-radius:5px}
+  .loc-empty{
+    margin-top:12px;border:1px dashed var(--line);border-radius:12px;background:#fbfdff;
+    padding:26px 16px;text-align:center;color:var(--muted);font-size:12.5px;
+  }
+  .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font-size:12px;color:var(--muted)}
+  .meta b{color:var(--ink-2);font-weight:600}
+
+  /* ---------- log ---------- */
+  .log{margin-top:22px;overflow:hidden}
+  .log-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line-soft)}
+  .log-head h2{margin:0;font-size:14.5px;letter-spacing:-.1px}
+  .log-head .sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .btn-ghost{
+    border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);padding:7px 12px;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .btn-ghost:hover{border-color:var(--accent);color:var(--brand)}
+  .btn-ghost svg{width:14px;height:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{
+    text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;padding:11px 20px;background:#fafcfe;
+    border-bottom:1px solid var(--line-soft);white-space:nowrap;
+  }
+  tbody td{padding:12px 20px;border-bottom:1px solid var(--line-soft);color:var(--ink-2)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#fbfdff}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:var(--ink)}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+    letter-spacing:.03em;padding:3px 9px;border-radius:99px;border:1px solid;
+  }
+  .badge.pass{color:var(--pass);background:var(--pass-bg);border-color:var(--pass-line)}
+  .badge.fail{color:var(--fail);background:var(--fail-bg);border-color:var(--fail-line)}
+  .badge.review{color:var(--review);background:var(--review-bg);border-color:var(--review-line)}
+  .num{font-variant-numeric:tabular-nums}
+
+  footer{margin-top:26px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+         font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+  footer .note{max-width:660px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= top bar ================= -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"/><path d="M4 8l8 4 8-4M12 12v8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">PrintGuard</div>
+        <div class="brand-sub">Surface inspection · 3D-printed parts</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="pill">v1.0</span>
+      <a href="#">Guide</a>
+      <a href="#">Support</a>
+    </div>
+  </div>
+
+  <!-- ================= hero ================= -->
+  <div class="hero">
+    <h1>Inspect a part in one click.</h1>
+    <p>Upload a photo of a printed part and get a pass/fail verdict with the defect location — usually in under a second.</p>
+  </div>
+
+  <!-- ================= mockup state switch (template only) ================= -->
+  <div class="statebar">
+    <strong>Template preview:</strong> switch the result state —
+    <button class="state-chip on" data-state="pass">PASS</button>
+    <button class="state-chip" data-state="fail">FAIL</button>
+    <button class="state-chip" data-state="review">NEEDS REVIEW</button>
+    <span style="margin-left:auto">(placeholder content — no model attached)</span>
+  </div>
+
+  <!-- ================= main grid ================= -->
+  <div class="grid">
+
+    <!-- ---------- left: upload ---------- -->
+    <div class="card card-pad">
+      <div class="drop">
+        <div class="drop-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v13"/>
+          </svg>
+        </div>
+        <div class="drop-main">Drop a photo here, or click to browse</div>
+        <div class="drop-sub">JPG or PNG · up to 10 MB · single part per photo</div>
+      </div>
+
+      <div class="row-label">
+        <span class="lab">Or try a sample</span>
+        <span class="hint">click to preview</span>
+      </div>
+
+      <div class="samples">
+        <div class="thumb sel"><img src="../samples/D1_test/defect/IMG_9153.jpg" alt=""><span>Sample 1</span></div>
+        <div class="thumb"><img src="../samples/D1_test/defect/IMG_9213.jpg" alt=""><span>Sample 2</span></div>
+        <div class="thumb"><img src="../samples/D1_test/nondefect/IMG_8930.jpg" alt=""><span>Sample 3</span></div>
+        <div class="thumb"><img src="../samples/D1_test/nondefect/IMG_9033.jpg" alt=""><span>Sample 4</span></div>
+      </div>
+
+      <button class="btn-main">Inspect part</button>
+
+      <div class="segwrap">
+        <div class="row-label" style="margin-top:0">
+          <span class="lab">Sensitivity</span>
+        </div>
+        <div class="seg">
+          <button>Strict</button>
+          <button class="on">Balanced</button>
+          <button>Sensitive</button>
+        </div>
+        <p class="seg-note">Stricter settings reject more parts but raise false alarms.</p>
+      </div>
+
+      <div class="privacy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z"/><path d="M9 12l2 2 4-4"/>
+        </svg>
+        Images are processed on this device and never uploaded to a server.
+      </div>
+    </div>
+
+    <!-- ---------- right: result ---------- -->
+    <div class="card card-pad">
+      <div class="result" id="resultCard">
+        <div class="tag"><span class="dot"></span> <span id="tagText">Pass</span></div>
+        <div class="verdict"><b id="verdictText">PASS</b><em id="verdictSub">no surface defects detected</em></div>
+        <div class="say" id="sayText">The part matches the reference surface quality.</div>
+
+        <div class="conf">
+          <div class="conf-top"><span>Confidence</span><span class="num" id="confText">98.4%</span></div>
+          <div class="bar"><i id="confBar"></i></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="loc-head">
+        <span class="lab">Defect location</span>
+        <button class="link-btn">Show</button>
+      </div>
+
+      <div class="loc-box" id="locBox">
+        <img id="locImg" src="../samples/D1_test/nondefect/IMG_8930.jpg" alt="">
+        <div class="heat" id="heat" style="opacity:0"></div>
+        <span class="loc-cap" id="locCap">no defect region highlighted</span>
+      </div>
+
+      <div class="meta">
+        <span>Inspection time <b id="timeText">1.2 s</b></span>
+        <span>Image <b>2.9 MP</b></span>
+        <span>Engine <b>PrintGuard v1.0</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= log ================= -->
+  <div class="card log">
+    <div class="log-head">
+      <div>
+        <h2>Inspection log</h2>
+        <div class="sub">This session · 3 parts</div>
+      </div>
+      <button class="btn-ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/>
+        </svg>
+        Export CSV
+      </button>
+    </div>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Result</th><th>Confidence</th><th>Time</th><th>Checked at</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">part_001.jpg</td>
+          <td><span class="badge pass">PASS</span></td>
+          <td class="num">98.4%</td><td class="num">1.2 s</td><td class="num">19:42:03</td>
+        </tr>
+        <tr>
+          <td class="mono">part_002.jpg</td>
+          <td><span class="badge fail">FAIL</span></td>
+          <td class="num">91.2%</td><td class="num">1.1 s</td><td class="num">19:43:17</td>
+        </tr>
+        <tr>
+          <td class="mono">part_003.jpg</td>
+          <td><span class="badge review">NEEDS REVIEW</span></td>
+          <td class="num">54.0%</td><td class="num">1.3 s</td><td class="num">19:44:02</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <div class="note">
+      AI-assisted inspection. Results are advisory — final acceptance should be confirmed by a qualified operator.
+    </div>
+    <div>© 2026 PrintGuard · local processing</div>
+  </footer>
+</div>
+
+<script>
+  /* Template-only interaction: switch the visible result state. */
+  const states = {
+    pass:   {cls:"",           tag:"Pass",          verdict:"PASS",   sub:"no surface defects detected",
+             say:"The part matches the reference surface quality.",
+             conf:"98.4%", bar:"98.4%", time:"1.2 s", cap:"no defect region highlighted", heat:0,
+             img:"../samples/D1_test/nondefect/IMG_8930.jpg"},
+    fail:   {cls:"is-fail",    tag:"Fail",          verdict:"FAIL",   sub:"defect detected",
+             say:"Surface irregularity detected near the part edge. Reject or send for rework.",
+             conf:"91.2%", bar:"91.2%", time:"1.1 s", cap:"most likely defect area", heat:1,
+             img:"../samples/D1_test/defect/IMG_9153.jpg"},
+    review: {cls:"is-review",  tag:"Needs review",  verdict:"REVIEW", sub:"verdict unclear",
+             say:"The image is not conclusive. Please re-shoot under better lighting or inspect manually.",
+             conf:"54.0%", bar:"54.0%", time:"1.3 s", cap:"low-confidence region", heat:.55,
+             img:"../samples/D1_test/defect/IMG_9213.jpg"}
+  };
+  const card = document.getElementById("resultCard");
+  const heat = document.getElementById("heat");
+  document.querySelectorAll(".state-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".state-chip").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      const s = states[btn.dataset.state];
+      card.className = "result " + s.cls;
+      document.getElementById("tagText").textContent = s.tag;
+      document.getElementById("verdictText").textContent = s.verdict;
+      document.getElementById("verdictSub").textContent = s.sub;
+      document.getElementById("sayText").textContent = s.say;
+      document.getElementById("confText").textContent = s.conf;
+      document.getElementById("confBar").style.width = s.bar;
+      document.getElementById("timeText").textContent = s.time;
+      document.getElementById("locCap").textContent = s.cap;
+      heat.style.opacity = s.heat;
+      document.getElementById("locImg").src = s.img;
+    });
+  });
+  /* sample thumbnail selection */
+  document.querySelectorAll(".thumb").forEach(t => {
+    t.addEventListener("click", () => {
+      document.querySelectorAll(".thumb").forEach(x => x.classList.remove("sel"));
+      t.classList.add("sel");
+      document.getElementById("locImg").src = t.querySelector("img").src;
+    });
+  });
+</script>
+</body>
+</html>
