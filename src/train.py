@@ -107,6 +107,8 @@ def predict(model, loader, device):
 def run(cfg: dict, data_root: Path, splits_dir: Path, out_root: Path,
         smoke: bool = False, force: bool = False, cache_root: Path | None = None) -> Path:
     run_id = make_run_id(cfg["model"], cfg["dataset"], cfg["optimizer"], int(cfg["seed"]))
+    if cfg.get("run_tag"):
+        run_id = f'{run_id}__{cfg["run_tag"]}'
     run_dir = ensure_dir(Path(out_root) / "runs" / run_id)
     if (run_dir / "metrics.json").exists() and not force and not smoke:
         print(f"[train] skipping existing run: {run_id}")
@@ -244,6 +246,10 @@ def main() -> None:
     ap.add_argument("--dataset", default=None)
     ap.add_argument("--model", default=None, help="override the model in the config (e.g. vgg16)")
     ap.add_argument("--seed", type=int, default=None)
+    ap.add_argument("--no-pretrained", action="store_true",
+                    help="random-initialise the backbone instead of loading ImageNet weights")
+    ap.add_argument("--freeze", default=None, choices=["all_conv", "none"],
+                    help="override the freeze strategy (none = train every parameter)")
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--cache-root", type=Path, default=None,
@@ -255,9 +261,12 @@ def main() -> None:
     if args.save_weights:
         cfg["save_weights"] = True
     for key, val in (("optimizer", args.optimizer), ("dataset", args.dataset),
-                     ("model", args.model), ("seed", args.seed)):
+                     ("model", args.model), ("seed", args.seed),
+                     ("freeze", args.freeze)):
         if val is not None:
             cfg[key] = val
+    if args.no_pretrained:
+        cfg["pretrained"] = False
     run(cfg, args.data_root, args.splits_dir, args.out, smoke=args.smoke, force=args.force,
         cache_root=args.cache_root)
 
