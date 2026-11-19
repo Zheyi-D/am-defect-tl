@@ -81,6 +81,7 @@ status:
 | `src/aggregate.py` | 合并 `metrics.json` → `leaderboard.csv`，与 `docs/paper_results.csv` 对标 | 跳过 `smoke=True` |
 | `src/evaluate.py` | 10 指标 + 2×2 混淆矩阵 + 绘图 | **positive = defect** |
 | `analysis/gradcam.py` | Grad-CAM + 预测示例图；从 `model.pt` 复原模型 | 需要 `model.pt` |
+| `analysis/demo_client.py` | **客户端版**检测界面（扫描动效、PASS/FAIL、会话日志 + CSV 导出） | 固定 MobileNetV2·D1·Adam；`--model` 可换 |
 
 ## 5. 产物契约（不要改字段名）
 

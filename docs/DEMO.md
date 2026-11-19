@@ -1,7 +1,10 @@
 # 现场演示手册（DEMO）
 
 > 面向口头报告 10:00–12:30 那一段的 live demo。两份东西：
-> ① `docs/index.html` 结果看板（静态、离线、可投屏）；② `analysis/demo_app.py` 推理界面（本机 Gradio）。
+> ① `docs/index.html` 结果看板（静态、离线、可投屏）；② `analysis/demo_app.py` 推理界面（本机 Gradio，技术版）；
+> ③ `analysis/demo_client.py` **客户端版**（扫描动效 + PASS/FAIL + 检测记录，给客户看的形态）：
+> `python -m analysis.demo_client` → <http://127.0.0.1:7861> 。
+> 注意它只显示 Grad-CAM 热力图，**不宣称定位缺陷**（7×7 注意力图，每格约 32 px，不足以给出边界框或面积）。
 
 ---
 
