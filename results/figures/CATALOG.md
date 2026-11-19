@@ -9,6 +9,7 @@
 | 报告图号 | 文件 | Caption (EN) | 用在哪节 | 生成方式 |
 |---|---|---|---|---|
 | Fig. 1 | `fig_pipeline.png` | Overview of the transfer-learning pipeline: frozen ImageNet backbone, paper-style head, and the 66-run matrix. | 2 | `python tools/make_pipeline_figure.py` |
+| Fig. 2 | `fig_network.png` | Complete network for one run: frozen ImageNet backbone, 7 × 7 × C feature map, AvgPool2d(4,4), Linear(C,64)+ReLU, Dropout(0.5), Linear(64,2)+Softmax, with trainable-parameter counts per backbone. | 2 | `python tools/make_network_figure.py` |
 | Fig. 2 | `fig_accuracy_by_model.png` | Test accuracy of eleven backbones on D1 and D2, with the values reported by Ahsan et al. overlaid. | 3.1 | `python -m analysis.make_figures` |
 | Fig. 3 | `fig_optimizer_heatmap.png` | Effect of optimizer choice (Adam / SGD / RMSprop) on test accuracy, D1 (left) and D2 (right). | 3.2 | 同上 |
 | Fig. 4 | `fig_confusion_grid.png` | Confusion matrices of the best and worst run on each dataset. | 3.1 | 同上 |
@@ -32,6 +33,7 @@
 | `fig_leakage_small15.png` | — | leakage experiment, small-data regime only (backup) |
 | `fig_optimizer_heatmap.png` | Fig. 3 | main figure |
 | `fig_pipeline.png` | Fig. 1 | main figure |
+| `fig_network.png` | Fig. 2 | main figure (network architecture) |
 | `fig_ranking.png` | Fig. 6 | main figure |
 | `gradcam_inception_resnet_v2__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
 | `gradcam_mobilenet_v2__D1__adam__s42.png` | — | Grad-CAM for another backbone (backup) |
