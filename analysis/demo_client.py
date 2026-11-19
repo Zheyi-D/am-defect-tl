@@ -404,6 +404,54 @@ table.log tr.empty td{color:#5a6a7d;padding:16px 11px;text-align:center}
 .tag.bad{color:#ffb0a8;border-color:rgba(255,90,77,.45);background:rgba(255,90,77,.10)}
 .tag.warn{color:#ffd79a;border-color:rgba(255,176,32,.45);background:rgba(255,176,32,.10)}
 
+
+
+/* ---- force full viewport width ---- */
+html,body{margin:0 !important;padding:0 !important;width:100% !important;max-width:100% !important}
+gradio-app,gradio-app > div{width:100% !important;max-width:100% !important;display:block !important}
+.gradio-container,.gradio-container > .main,.gradio-container .contain,
+.gradio-container main.contain,.gradio-container .wrap{
+  width:100% !important;max-width:100% !important;margin:0 !important;box-sizing:border-box !important}
+.gradio-container{padding:10px 16px 12px !important}
+
+
+/* ---- readable log (beat Gradio's prose colours) ---- */
+.logwrap h2{color:#e2ecf9 !important;font:700 10.5px/1 "Segoe UI",sans-serif !important;
+  letter-spacing:.14em !important;text-transform:uppercase !important}
+.logwrap .bar .r{color:#9fb0c4 !important}
+.logwrap table.log thead th{color:#a9bacd !important;background:#101620 !important}
+.logwrap table.log tbody td{color:#cfdcec !important}
+.logwrap table.log tr.empty td{color:#71829a !important}
+/* right column shrinks to its content */
+.col-res{height:fit-content !important;align-self:flex-start !important}
+
+/* ---- one-screen layout (no page scrolling) ---- */
+.gradio-container{max-width:1280px !important;padding:10px 14px 12px !important}
+.gradio-container .main,.gradio-container .contain,.gradio-container .wrap,.gradio-container main{max-width:1280px !important;width:100% !important;margin:0 auto !important}
+.grid3{gap:10px !important;align-items:stretch !important;flex-wrap:nowrap !important}
+.col-io{min-width:236px !important;max-width:250px !important}
+.col-view{min-width:0 !important}
+.col-res{min-width:250px !important;max-width:300px !important}
+.mod{padding:0 !important}
+.col-io .io{padding:10px 10px 10px !important}
+.col-io .mod-head{padding:7px 10px !important}
+.viewport-wrap .bezel-in{margin:10px !important}
+.screen{height:300px !important;aspect-ratio:auto !important}
+.logrow{margin-top:10px !important}
+.logwrap .recess{max-height:150px;overflow:auto}
+.logwrap table.log tbody td, .logwrap table.log thead th{padding:6px 10px !important}
+.logwrap{margin-top:10px !important;position:relative;background:linear-gradient(180deg,#141a21,#10151b);border:1px solid #1d242c;border-radius:9px;padding:10px 11px 11px !important}
+.logwrap .bar{display:flex;align-items:center;gap:10px;padding:0 0 7px}
+.logwrap .bar h2{margin:0;font:700 10.5px/1 "Segoe UI",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#c9d8ea}
+.logwrap .bar .r{margin-left:auto;font:11px/1 ui-monospace,Consolas,monospace;color:#8fa0b4}
+.readout{padding:10px !important}
+.verdict{padding:10px 11px !important}
+.verdict .v{font-size:26px !important;margin:6px 0 2px !important}
+.kv .row{padding:5px 10px !important}
+.summary{margin-top:8px !important}
+.stat{padding:6px 8px !important}
+.stat .n{font-size:15px !important}
+
 /* ---- Gradio internals overridden ---- */
 /* dataframe: kill the white cell chrome */
 .dataframe, .dataframe *{background-color:transparent !important;color:#b9c8da !important}
@@ -463,12 +511,13 @@ HEADER_HTML = """
 
 # ---------------------------------------------------------------- app
 def build_app(model: str, prefill: str | None = None):
+    """Single-screen layout: input | live view | result, with the log underneath."""
     import gradio as gr
 
     stats: dict = {"total": 0, "pass": 0, "fail": 0, "review": 0}
     log_rows: list[list] = []
 
-    def write_csv(rows: list[list]) -> str | None:
+    def write_csv(rows: list[list]):
         if not rows:
             return None
         path = ROOT / "results" / "client_inspection_log.csv"
@@ -479,32 +528,40 @@ def build_app(model: str, prefill: str | None = None):
             w.writerows(rows)
         return str(path)
 
-    with gr.Blocks(title="PrintGuard · Inspection Station") as app:
+    with gr.Blocks(title="PrintGuard · Inspection Station", fill_width=True) as app:
         gr.HTML(f"<style>{CSS}</style>")
         gr.HTML(HEADER_HTML)
 
         state_log = gr.State([])
 
-        with gr.Row(elem_classes=["mods"]):
-            with gr.Column(elem_classes=["mod"]):
-                gr.HTML('<div class="mod-head"><h2>Live View</h2>'
-                        '<span class="r">CAM-01 · 224×224</span></div>')
-                viewport = gr.HTML(viewport_html(None, "IDLE", "—"))
+        with gr.Row(elem_classes=["grid3"]):
+            # ---------- 1. input ----------
+            with gr.Column(scale=0, elem_classes=["mod", "col-io"]):
+                gr.HTML('<div class="mod-head"><h2>Part Photo</h2><span class="r">JPG / PNG</span></div>')
                 with gr.Column(elem_classes=["io"]):
                     photo = gr.Image(type="pil", sources=["upload", "webcam"],
-                                     label=None, show_label=False, height=150,
+                                     label=None, show_label=False, height=196,
                                      value=prefill if prefill else None)
                     scan_btn = gr.Button("Scan part", elem_classes=["scanbtn"])
 
-            with gr.Column(elem_classes=["mod"]):
-                gr.HTML('<div class="mod-head"><h2>Inspection Result</h2>'
+            # ---------- 2. live view ----------
+            with gr.Column(scale=3, elem_classes=["mod", "col-view"]):
+                gr.HTML('<div class="mod-head"><h2>Live View</h2>'
+                        '<span class="r">CAM-01 · 224×224</span></div>')
+                viewport = gr.HTML(viewport_html(None, "IDLE", "—"))
+
+            # ---------- 3. result ----------
+            with gr.Column(scale=2, elem_classes=["mod", "col-res"]):
+                gr.HTML('<div class="mod-head"><h2>Result</h2>'
                         '<span class="r">LINE-A / ST-03</span></div>')
                 card = gr.HTML(card_html(None, stats))
 
+        # ---------- 4. log ----------
         with gr.Column(elem_classes=["logwrap"]):
-            with gr.Row():
-                gr.HTML('<div class="mod-head" style="border:0;background:none;flex:1">'
-                        '<h2>Inspection Log</h2><span class="r">this session</span></div>')
+            with gr.Row(elem_classes=["bar"]):
+                gr.HTML('<div style="display:flex;align-items:center;gap:10px;width:100%">'
+                        '<h2>Inspection Log</h2>'
+                        '<span class="r" style="margin-left:auto">this session</span></div>')
                 download = gr.DownloadButton("EXPORT CSV", value=None, elem_classes=["ghost"])
             table = gr.HTML(log_html([]))
 
@@ -517,8 +574,6 @@ def build_app(model: str, prefill: str | None = None):
 
             img_b64 = _b64(image)
             t_start = time.time()
-
-            # frame 1: scanning (the CSS sweep takes SCAN_SECONDS)
             rows = list(log_rows)
             yield (viewport_html(img_b64, "SCANNING", "—", scanning=True, progress=0),
                    card_html(None, stats), log_html(rows), rows, write_csv(rows))
@@ -541,7 +596,6 @@ def build_app(model: str, prefill: str | None = None):
             if time_left > 0:
                 time.sleep(time_left)
 
-            # frame 2: result
             yield (viewport_html(img_b64, "RESULT", f"{result['cycle']:.2f} s"),
                    card_html(result, stats), log_html(rows), rows, write_csv(rows))
 
