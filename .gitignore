@@ -57,7 +57,7 @@ results/client_inspection_log.csv
 !/testset/README.md
 
 # no-transfer ablation outputs (downloaded from Kaggle)
-/results_ablation/
+/results_ablation/*
 /kaggle_out*/
 
 # temp images produced by tools/build_slides_pptx.py
