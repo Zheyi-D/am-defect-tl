@@ -64,7 +64,6 @@ results/client_inspection_log.csv
 reports/_slide_*.jpg
 
 # deck build artefacts (regenerate with tools/build_slides_pptx.py)
-/reports/slides_draft.pptx
 /reports/_slide_cache/
 /reports/preview*/
 /reports/_build_tmp.pptx
