@@ -145,8 +145,7 @@ HUD = """
 
 
 def viewport_html(img_b64: str | None, state: str, time_text: str,
-                  scanning: bool = False, marker: bool = False,
-                  progress: int = 0) -> str:
+                  scanning: bool = False, progress: int = 0) -> str:
     if img_b64 is None:
         inner = (
             '<div class="awaiting"><div class="aw-ico">⤒</div>'
@@ -164,12 +163,11 @@ def viewport_html(img_b64: str | None, state: str, time_text: str,
         extra = f'<div class="prog"><i style="width:{p_pct}%"></i></div>'
         extra += f'<div class="prog-text">SCAN {p_pct}%</div>' 
     laser = '<div class="laser"></div><div class="trail"></div><div class="scanline"></div>'
-    mark = '<div class="marker on"></div>' if marker else '<div class="marker"></div>'
     return (
         f'<div class="bezel-in"><div class="{cls}">'
         f'<img src="data:image/jpeg;base64,{img_b64}" alt="">'
         '<div class="dim"></div><div class="hud-grid"></div>'
-        f'{HUD.format(state=state, time=time_text)}{laser}{mark}{extra}'
+        f'{HUD.format(state=state, time=time_text)}{laser}{extra}'
         '</div></div>'
     )
 
@@ -188,7 +186,6 @@ def card_html(result: dict | None, stats: dict) -> str:
         cls = result["cls"]
         extra = "" if cls == "ok" else " is-" + cls
         pct = result["confidence"] * 100.0
-        area = "&mdash;" if result["verdict"] == "PASS" else "see view"
         head = (
             f'<div class="verdict{extra}">'
             f'<div class="top"><span class="sig"></span><span class="k">{result["verdict"]}</span></div>'
@@ -200,7 +197,6 @@ def card_html(result: dict | None, stats: dict) -> str:
             f'<div class="row"><span class="k">Confidence</span><span class="v">{pct:.1f}%</span></div>'
             f'<div class="row"><span class="k">Decision score</span>'
             f'<span class="meter{extra}"><i style="width:{pct:.0f}%"></i></span></div>'
-            f'<div class="row"><span class="k">Defect area</span><span class="v">{area}</span></div>'
             f'<div class="row"><span class="k">Cycle time</span><span class="v">{result["cycle"]:.2f} s</span></div>'
             '<div class="row"><span class="k">Engine</span><span class="v">v1.0</span></div>'
             '</div>'
@@ -313,13 +309,6 @@ footer{display:none !important}
 .prog{position:absolute;left:12px;right:12px;bottom:38px;height:3px;background:rgba(255,255,255,.10);border-radius:99px;overflow:hidden}
 .prog i{display:block;height:100%;background:linear-gradient(90deg,#2b9fd8,#4fe3ff);box-shadow:0 0 12px rgba(79,227,255,.8)}
 .prog-text{position:absolute;left:12px;bottom:46px;font:600 10px/1 ui-monospace,Consolas,monospace;color:rgba(180,230,255,.85)}
-
-.marker{position:absolute;left:50%;top:40%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:99px;
-  border:2px solid rgba(255,90,77,.95);opacity:0;transform:scale(.7);box-shadow:0 0 22px 4px rgba(255,90,77,.45)}
-.marker.on{opacity:1;transform:scale(1)}
-.marker.on::after{content:"";position:absolute;inset:-10px;border-radius:99px;border:1px solid rgba(255,90,77,.5);
-  animation:pulse 1.6s ease-out infinite}
-@keyframes pulse{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.5);opacity:0}}
 
 .awaiting{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
 .awaiting .aw-ico{font-size:26px;color:#2f3f52}
@@ -553,8 +542,7 @@ def build_app(model: str, prefill: str | None = None):
                 time.sleep(time_left)
 
             # frame 2: result
-            yield (viewport_html(img_b64, "RESULT", f"{result['cycle']:.2f} s",
-                                 marker=result["verdict"] != "PASS"),
+            yield (viewport_html(img_b64, "RESULT", f"{result['cycle']:.2f} s"),
                    card_html(result, stats), log_html(rows), rows, write_csv(rows))
 
         scan_btn.click(inspect, inputs=[photo],
