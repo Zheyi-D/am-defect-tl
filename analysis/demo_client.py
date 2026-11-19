@@ -407,6 +407,11 @@ table.log tr.empty td{color:#5a6a7d;padding:16px 11px;text-align:center}
 
 
 
+
+/* clear button */
+.ghost.danger, button.ghost.danger{color:#ffb0a8 !important;border-color:rgba(255,90,77,.42) !important}
+.ghost.danger:hover{border-color:#ff5a4d !important;color:#ffd9d5 !important}
+
 /* ---- no horizontal overflow anywhere ---- */
 html,body{overflow-x:hidden !important;max-width:100vw !important}
 .gradio-container,.gradio-container .main,.gradio-container .contain,
@@ -573,6 +578,7 @@ def build_app(model: str, prefill: str | None = None):
                 gr.HTML('<div style="display:flex;align-items:center;gap:10px;width:100%">'
                         '<h2>Inspection Log</h2>'
                         '<span class="r" style="margin-left:auto">this session</span></div>')
+                clear_btn = gr.Button("CLEAR", elem_classes=["ghost", "danger"])
                 download = gr.DownloadButton("EXPORT CSV", value=None, elem_classes=["ghost"])
             table = gr.HTML(log_html([]))
 
@@ -610,8 +616,18 @@ def build_app(model: str, prefill: str | None = None):
             yield (viewport_html(img_b64, "RESULT", f"{result['cycle']:.2f} s"),
                    card_html(result, stats), log_html(rows), rows, write_csv(rows))
 
+        def clear_all():
+            """Start a fresh session: empty log, zeroed counters, idle viewport."""
+            log_rows.clear()
+            for k in stats:
+                stats[k] = 0
+            empty = viewport_html(None, "IDLE", "—")
+            return empty, card_html(None, stats), log_html([]), [], None
+
         scan_btn.click(inspect, inputs=[photo],
                        outputs=[viewport, card, table, state_log, download])
+        clear_btn.click(clear_all, inputs=None,
+                        outputs=[viewport, card, table, state_log, download])
 
     return app
 
