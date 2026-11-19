@@ -55,3 +55,7 @@ results/client_inspection_log.csv
 # testset/ : 657 张测试图片（约 170 MB），只有 README 进 Git
 /testset/*
 !/testset/README.md
+
+# no-transfer ablation outputs (downloaded from Kaggle)
+/results_ablation/
+/kaggle_out*/
