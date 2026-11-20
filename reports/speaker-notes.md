@@ -1,149 +1,120 @@
 # Speaker notes — eight parts
 
-> Exported from `slides_draft.pptx`; the same text sits in each slide's notes pane.
+> Exported from `slides_draft_v9.pptx`; the same text sits in each slide's notes pane.
 > Timing appears here only — never on the slides.
 
 ## Slide 1 — Python-Based Transfer Learning
 
 **PART 1 / 8 · presenter 【NAME 1】 · budget 0:20**
-- Say: the title, the paper (ESWA 253, 124293) and one sentence on what the group built.
-- Do not read the group names or the course code aloud.
+- Title, the paper (ESWA 253, 124293) and one sentence on what the group built.
 
-## Slide 2 — How this talk is organised
-
-**PART 1 / 8 · presenter 【NAME 1】 · budget 0:35**
-- Say: eight parts, five work groups; every part answers WHAT / WHY / RESULT.
-- Do not read the table row by row — point at the groups.
-
-## Slide 3 — Motivation and purpose
+## Slide 2 — Background and objective
 
 **PART 1 / 8 · presenter 【NAME 1】 · budget 0:50**
-- WHAT: binary classification of printed parts. WHY: manual inspection does not scale and only 271 real photos exist.
-- RESULT: 66 runs, 0.98 mean accuracy, plus analyses the paper does not report.
+- Keep this short: three ways to inspect a printed part, we take camera + ML, labels are scarce so we reuse ImageNet features.
+- Then the objective: reproduce 11 backbones and measure the deployment cost. 11 × 3 × 2 = 66 runs.
 
-## Slide 4 — Background and the tools we used
-
-**PART 1 / 8 · presenter 【NAME 1】 · budget 0:45**
-- Background: three ways to inspect a printed part; we take camera + ML and borrow ImageNet features because labels are scarce.
-- Tools: PyTorch, timm, scikit-learn, matplotlib, Gradio, Kaggle T4, Git + CI.
-- Point at the timeline on the way in.
-
-## Slide 5 — The two datasets we use
+## Slide 3 — The two datasets
 
 **PART 2 / 8 · presenter 【NAME 2】 · budget 0:45**
-- Point at the grid: eight defects on top, eight clean parts below — the defect is stringing around the part.
-- Numbers: D1 271 real (136/135); D2 3,017 augmented (947/2,070).
-- Say explicitly that D2 is an augmentation of D1, not new data.
+- Point at the grid: eight defects (stringing) on top, eight clean parts below.
+- Numbers: D1 271 real (136/135), 5184 × 3456; D2 3,017 augmented (947/2,070), 128 × 128.
 
-## Slide 6 — How we augment — and what it costs
+## Slide 4 — How the augmented set is generated
 
 **PART 2 / 8 · presenter 【NAME 2】 · budget 0:45**
-- WHAT: rotation, flip, brightness, 11 copies per image. WHY: 189 training photos.
-- RESULT: 271 → 3,017 but at 128 px, provenance lost, and copies are not new information.
+- Rotation, flip and brightness; 11 copies per image → 271 becomes 3,017.
+- Be precise: the copies are 128 px and come from the same 271 photos.
 
-## Slide 7 — Preprocessing and the frozen split
+## Slide 5 — Preprocessing and the split
 
-**PART 3 / 8 · presenter 【NAME 3】 · budget 0:45**
-- Walk the five blocks, then the split bars.
-- WHY: decoding a 5184 × 3456 JPEG costs ~80 s per epoch. RESULT: under a minute per run, and one frozen split for all 66 runs (189/28/54 and 2,112/302/603).
+**PART 3 / 8 · presenter 【NAME 3】 · budget 0:50**
+- Walk the five preprocessing blocks, then the split bars: 189/28/54 and 2,112/302/603, seed 42, identical for all 66 runs.
+- Say why the cache exists: decoding a 5184 × 3456 JPEG costs about 80 s per epoch.
 
-## Slide 8 — The number that limits every claim: 54
+## Slide 6 — Transfer learning: a frozen backbone and a small head
 
-**PART 3 / 8 · presenter 【NAME 3】 · budget 0:45**
-- This page is the caveat that limits every claim: 54 test images, one mistake = 1.85 points.
-- 1.0000 means 'all 54 correct', and the 95 % interval for 54/54 is about [0.95, 1.00].
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
+- Left column trains 2.3 M parameters, right column 82 k.
+- Why: with 189 images, updating the backbone memorises the training set.
 
-## Slide 9 — Transfer learning: what it is and why we freeze
+## Slide 7 — The network
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:40**
-- Point at the two columns: scratch trains 2.3 M parameters, we train 82 k.
-- WHY: with 189 images, updating the backbone memorises the training set.
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
+- Read the shapes left to right: 224×224×3 → 7×7×C → 1×1×C → 64 → 64 → 2.
+- Blue is frozen, green is trained: 82,114 parameters = 3.56 % of MobileNetV2.
 
-## Slide 10 — The whole network in one picture
+## Slide 8 — Algorithm 1 — one training run
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:40**
-- Walk left to right and read the shapes under each block: 224×224×3 → 7×7×C → 1×1×C → 64 → 64 → 2.
-- Blue = frozen, green = trained; 82,114 parameters = 3.56 % of MobileNetV2.
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
+- Read Algorithm 1: freeze the backbone, build the head, train the head only, evaluate ten metrics on the frozen test split.
+- The same procedure ran 66 times.
 
-## Slide 11 — Algorithm 1 — one training run
+## Slide 9 — The experiment matrix
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:40**
-- Read Algorithm 1 top to bottom: freeze the backbone, build the head, train the head only, evaluate 10 metrics on the frozen test split.
-- Stress that this exact procedure ran 66 times.
-
-## Slide 12 — The 66-run matrix
-
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:40**
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
 - Each square is one completed run: 11 × 3 × 2 = 66.
 - Then the hyper-parameters: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.
 
-## Slide 13 — Reproducibility is part of the result
+## Slide 10 — What one run looks like, epoch by epoch
 
-**PART 5 / 8 · presenter 【NAME 5】 · budget 0:35**
-- 66/66 runs, 10 checkpoints, 522 table values re-checked with zero mismatches, frozen splits in the repository.
-- This is credibility, not content — keep it short.
+**PART 5 / 8 · presenter 【NAME 5】 · budget 0:45**
+- Left: training loss keeps falling. Right: accuracy saturates after ~10 epochs, and validation loss drifts up after that — the epoch budget only matters for the heaviest backbones.
 
-## Slide 14 — Eleven backbones, one narrow band
+## Slide 11 — How the results are measured
+
+**PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
+- How we test: one pass over the frozen test split, then ten metrics and a 2×2 confusion matrix; positive class is defect.
+- Point out why: on 54 test images one mistake costs 1.85 points, so accuracy alone is not enough.
+
+## Slide 12 — Results: eleven backbones
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:45**
 - Read the two means: 0.9826 on D1, 0.9849 on D2; five backbones at 1.0000, the weakest 0.9259.
-- Caution: do not announce a winner.
+- Do not announce a winner.
 
-## Slide 15 — What tuning actually does to the results
+## Slide 13 — Results: what tuning changes
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
-- Optimiser choice moves the number by 0-4 points and only for the weakest backbone; curves saturate by ~10 epochs.
-- Say openly: we did not sweep the learning rate — tuning shifts numbers, not conclusions.
+- Optimiser choice moves the number by 0-4 points and only for the weakest backbone; the ranking never changes; curves oscillate for the heavy model.
+- State the limitation: the learning rate was not swept.
 
-## Slide 16 — From model to product: the inspection station
-
-**PART 6 / 8 · presenter 【NAME 6】 · budget 0:45**
-- Walk the screenshot: photo in, scan, verdict with confidence and cycle time, session log.
-- WHY MobileNetV2 on D1: 2.3 M parameters, 22.9 ms on CPU, offline. Never claims to localise a defect.
-
-## Slide 17 — Live demo — what we will show
-
-**PART 7 / 8 · presenter 【NAME 7】 · budget 2:00 (the live demo)**
-- Follow the four steps: defect photo → clean photo → show the log → clear.
-- If anything fails, switch to the recorded walkthrough and keep talking. Fallback: 【TBD: demo_fallback.mp4】.
-
-## Slide 18 — Where we agree with the paper — and where we do not
+## Slide 14 — Results against the reported values
 
 **PART 8 / 8 · presenter 【NAME 8】 · budget 1:00**
-- Walk the delta chart, then explain the trap: three EfficientNets report F1 = 0, which inflates the gap.
-- Fair comparison: +8.2 on D1. Say 'fair comparison', never 'we beat them'.
+- Walk the delta chart, then the trap: three EfficientNets report F1 = 0, so the raw gap is inflated. Fair comparison: +8.2 points on D1.
 
-## Slide 19 — Is the accuracy just leakage? No
+## Slide 15 — Control: random split versus source-grouped split
 
 **PART 8 / 8 · presenter 【NAME 8】 · budget 0:50**
-- We rebuilt the augmented set with provenance and compared random vs source-grouped splits: |Δ| ≤ 1.5 %, mostly negative.
-- A negative result, reported as such.
+- The augmented set was rebuilt with provenance and trained twice: random split vs split grouped by source image.
+- |Δacc| ≤ 1.5 %, mostly negative — a negative control result.
 
-## Slide 20 — Explainability: attention, not localisation
+## Slide 16 — What the model looks at
 
 **PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
-- Both Grad-CAM and LIME look at the part, not the background.
-- But the map is 7 × 7 and the head averages it with a 4 × 4 pool — 'around here' only, which is why we removed the marker from our UI.
+- Attention sits on the part, not the background.
+- But the map is 7 × 7 with a 4 × 4 pooling step, so it marks a region, not a defect mask.
 
-## Slide 21 — Deployment cost decides the engine
+## Slide 17 — Deployment cost
 
 **PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
 - MobileNetV2 22.9 ms on CPU versus VGG16 165 ms; on a GPU everything is under 40 ms.
-- At the same accuracy, MobileNetV2 is 58× smaller — that is the engine we ship.
+- At equal accuracy MobileNetV2 is 58× smaller — that is the engine we deploy.
 
-## Slide 22 — How much is the pre-training worth?
+## Slide 18 — Live demo
 
-**PART 8 / 8 · presenter 【NAME 8】 · budget 0:50**
-- Frozen random features collapse to 0.5000, so freezing only works because of the ImageNet weights.
-- But scratch also reaches 1.0000 — pre-training buys cost, not accuracy. Say it as a finding.
+**PART 6 / 8 · presenter 【NAME 6】 with 【NAME 7】 operating · budget 2:00**
+- Hand over to the live demo: load a defect photo, then a clean one, show the log, export the CSV.
+- If anything fails, play the fallback recording 【TBD: demo_fallback.mp4】 and keep talking.
 
-## Slide 23 — What we would tell a production engineer
+## Slide 19 — Conclusions and limitations
 
 **PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
-- Three findings and four limitations, one sentence each.
-- End on the limitation sentence and the honest next step: localisation needs segmentation or anomaly detection, which we did not do.
+- Three conclusions and four limitations, one sentence each.
+- End on the limitation: classification only, 54 test images, learning rate not swept.
 
-## Slide 24 — Thank you
+## Slide 20 — Thank you
 
 **PART 8 / 8 · presenter: all eight on stage · budget 0:20**
-- Thank the audience, point at the repository link, and hand over to Q&A.
+- Thank the audience, point at the repository link, hand over to Q&A.
