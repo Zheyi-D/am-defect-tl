@@ -124,7 +124,9 @@ status:
 | Gradio demo | ✅ `analysis/demo_app.py` + `docs/DEMO.md`（本地 CPU 运行，无需 GPU） |
 | 报告图表/表格 | ✅ `results/figures/` 23 张 PNG（报告图号见 **CATALOG.md**）+ `reports/tables/table{1..6}_*.{md,tex}` |
 | 报告正文 | 🔗 在线协作文档（WPS 金山文档）：https://www.kdocs.cn/l/cokbmUbGMYkE —— 文档里只有封面与标题，正文由 4 位成员撰写（P1–P4），入口见 `docs/START-HERE.md` 与 `reports/ONLINE.md` |
-| 幻灯片 | 🔗 15 页骨架（WPS 金山文档）：https://www.kdocs.cn/l/co7EkTOqxwN0 —— 生成脚本 `tools/build_slides_pptx.py`；**PPT 也是 11/30 提交物之一** |
+| 幻灯片 | ✅ **23 页、8 个 part**（每人一块，WHAT/WHY/RESULT），全页含英文演讲备注；文件 `reports/slides_draft.pptx`，备注导出 `reports/speaker-notes.md`；生成脚本 `tools/build_slides_pptx.py` + `tools/deck_style.py`；幻灯片用图在 `reports/assets/slide_*.png`（`tools/make_slide_figures.py`）。**PPT 也是 11/30 提交物之一** |
+| 0→1 说明文档 | ✅ `docs/WALKTHROUGH.md`（数据→模型→66 run→4 分析→两套前端→复现→边界） |
+| 客户端 demo | ✅ `analysis/demo_client.py`（单屏、扫描动效、PASS/FAIL、日志、CSV、CLEAR；固定 MobileNetV2·D1） |
 | 图表完整性 | ✅ 无缺口：Fig. 1–10 全部就绪（`fig_pipeline.png` 为 Fig. 1），Table 1–6 全部生成 |
 
 ## 9. 已知坑（踩过的）
