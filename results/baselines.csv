@@ -1,0 +1,9 @@
+baseline,dataset,split,accuracy,f1,mcc,n
+always-defect,D1,test,0.5,0.666667,0.0,54
+always-defect,D2,test,0.313433,0.477273,0.0,603
+always-nondefect,D1,test,0.5,0.0,0.0,54
+always-nondefect,D2,test,0.686567,0.0,0.0,603
+frozen-mobilenet_v2-features+logreg,D1,test,1.0,1.0,1.0,54
+frozen-mobilenet_v2-features+logreg,D1,val,1.0,1.0,1.0,28
+pixel-logreg-32x32,D1,test,0.925926,0.92,0.861357,54
+pixel-logreg-32x32,D1,val,0.964286,0.962963,0.930949,28
