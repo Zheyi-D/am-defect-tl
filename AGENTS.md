@@ -69,6 +69,9 @@ status:
 
 ## 4. 代码地图
 
+> 完整叙事见 [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)。
+
+
 | 文件 | 职责 | 备注 |
 |---|---|---|
 | `src/locate_data.py` | 在 `/kaggle/input` 下搜索含 `data/D1/defect` 的目录 | 支持挂载延迟重试 |

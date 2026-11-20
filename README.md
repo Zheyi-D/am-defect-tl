@@ -1,3 +1,7 @@
+> **第一次接触这个项目：先读 [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** —— 从 0 到 1 讲清数据、模型、66 个实验、4 个分析、两套前端与所有边界。
+>
+> **写报告 / 做 PPT 的同学（及其 AI agent）：先读 [docs/START-HERE.md](docs/START-HERE.md)。**
+
 # am-defect-tl
 
 **3D 打印件缺陷检测 · 迁移学习复现**
