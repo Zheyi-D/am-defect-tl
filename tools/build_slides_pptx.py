@@ -92,8 +92,8 @@ def s02(prs, page, total):
     chrome(slide, "Agenda", "What we will cover in 15 minutes", page, total)
     items = [
         ("01", "The problem & our objectives", "0:50 – 2:30", "Why 3D-printed parts need automatic inspection."),
-        ("02", "Data & method", "2:30 – 6:25", "Two public datasets, one frozen split, one head."),
-        ("03", "66 experiments & results", "6:30 – 9:55", "Where we match the paper and where we differ."),
+        ("02", "Data & method", "2:30 – 6:30", "Two public datasets, one frozen split, one head."),
+        ("03", "66 experiments & results", "6:35 – 10:00", "Where we match the paper and where we differ."),
         ("04", "Three analyses the paper lacks", "10:00 – 12:45", "Leakage, explainability, deployment cost."),
         ("05", "Live demo", "12:45 – 14:10", "The inspection station, end to end."),
         ("06", "Conclusions & limitations", "14:10 – 15:00", "What we would tell a production engineer."),
@@ -323,6 +323,19 @@ def s10(prs, page, total):
          "Why this matters: with 189 training images, updating 2.2 M backbone parameters overfits immediately. "
          "Freezing turns the problem into fitting 33-82 k numbers -- that is what makes the small dataset work.",
          size=11, color=INK, spacing=1.12)
+
+
+def s26(prs, page, total):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    chrome(slide, "02 · Method", "The whole network in one picture", page, total)
+    image_card(slide, ROOT / "reports" / "assets" / "network_deck.png",
+               M, 1.72, 11.88, 4.70,
+               caption="Figure 1b - input, frozen backbone, the five-step head and the verdict; shapes under each block")
+    box(slide, M, 6.50, 11.88, 0.46, fill=CARD, line=BORDER, lw=0.7, radius=0.05)
+    text(slide, M + 0.22, 6.60, 11.4, 0.3,
+         "Blue band = frozen ImageNet weights (never updated)   ·   green band = the only part we train: "
+         "82,114 parameters, 3.56 % of MobileNetV2.",
+         size=10, color=INK)
 
 
 # ---------------------------------------------------------------- 11 protocol
@@ -623,7 +636,7 @@ def s25(prs, page, total):
          color=RGBColor(0x74, 0x8C, 0xA2), align=PP_ALIGN.RIGHT)
 
 
-BUILDERS = [s01, s02, s03, s04, s05, s06, s07, s08, s09, s10, s11, s12, s13,
+BUILDERS = [s01, s02, s03, s04, s05, s06, s07, s08, s09, s10, s26, s11, s12, s13,
             s14, s15, s16, s17, s18, s19, s20, s21, s22, s23, s24, s25]
 
 
@@ -643,7 +656,7 @@ def build(out: Path) -> Path:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build the 25-slide presentation deck.")
+    ap = argparse.ArgumentParser(description="Build the 26-slide presentation deck.")
     ap.add_argument("--out", type=Path, default=Path("reports/slides_draft.pptx"))
     args = ap.parse_args()
     path = build(args.out)
