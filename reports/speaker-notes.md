@@ -1,6 +1,6 @@
 # Speaker notes — eight parts
 
-> Exported from `slides_draft_v8.pptx`; the same text sits in each slide's notes pane.
+> Exported from `slides_draft.pptx`; the same text sits in each slide's notes pane.
 > Timing appears here only — never on the slides.
 
 ## Slide 1 — Python-Based Transfer Learning
