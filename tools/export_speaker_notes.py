@@ -5,8 +5,8 @@ from pathlib import Path
 from pptx import Presentation
 
 ROOT = Path(__file__).resolve().parents[1]
-candidates = [ROOT / "reports" / "slides_draft_v7.pptx", ROOT / "reports" / "slides_draft.pptx"]
-deck = next((p for p in candidates if p.exists()), None)
+candidates = sorted((ROOT / "reports").glob("slides_draft*.pptx"), key=lambda q: q.stat().st_mtime, reverse=True)
+deck = candidates[0] if candidates else None
 if deck is None:
     raise SystemExit("no deck found")
 
