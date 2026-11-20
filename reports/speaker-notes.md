@@ -6,117 +6,92 @@
 ## Slide 1 — Python-Based Transfer Learning
 
 **PART 1 / 8 · presenter 【NAME 1】 · budget 0:20**
-- Title, the paper (ESWA 253, 124293) and one sentence on what the group built.
+- Title, the paper (ESWA 253, 124293) and one sentence on what the group did.
 
 ## Slide 2 — Background and objective
 
 **PART 1 / 8 · presenter 【NAME 1】 · budget 0:50**
-- Keep this short: three ways to inspect a printed part, we take camera + ML, labels are scarce so we reuse ImageNet features.
-- Then the objective: reproduce 11 backbones and measure the deployment cost. 11 × 3 × 2 = 66 runs.
+- Background: printed parts show stringing and poor layer bonding; inspection by eye is slow; only 271 real photographs exist.
+- Objective: freeze an ImageNet backbone, train a small head, and reproduce the comparison of eleven backbones. Keep it short — the detail starts on the next slide.
 
 ## Slide 3 — The two datasets
 
-**PART 2 / 8 · presenter 【NAME 2】 · budget 0:45**
-- Point at the grid: eight defects (stringing) on top, eight clean parts below.
-- Numbers: D1 271 real (136/135), 5184 × 3456; D2 3,017 augmented (947/2,070), 128 × 128.
+**PART 2 / 8 · presenter 【NAME 2】 · budget 0:50**
+- Point at the grid: eight defects on top, eight clean parts below; the defect is the thin extruded strands.
+- D1: 271 real photos, 136/135, 5184 × 3456. D2: 3,017 copies, 947/2,070, 128 × 128.
 
 ## Slide 4 — How the augmented set is generated
 
 **PART 2 / 8 · presenter 【NAME 2】 · budget 0:45**
-- Rotation, flip and brightness; 11 copies per image → 271 becomes 3,017.
-- Be precise: the copies are 128 px and come from the same 271 photos.
+- Rotation ±15°, horizontal flip, brightness; eleven copies per image, so 271 photographs become 3,017 training images.
+- Copies are stored at 128 × 128 and read at 224 × 224.
 
-## Slide 5 — Preprocessing and the split
+## Slide 5 — Preprocessing and the train / val / test split
 
 **PART 3 / 8 · presenter 【NAME 3】 · budget 0:50**
-- Walk the five preprocessing blocks, then the split bars: 189/28/54 and 2,112/302/603, seed 42, identical for all 66 runs.
-- Say why the cache exists: decoding a 5184 × 3456 JPEG costs about 80 s per epoch.
+- Walk the five preprocessing blocks, then the split bars: resize to 224, ImageNet normalisation, cache, then 70/10/20 with seed 42.
+- Give the split sizes: 189/28/54 on D1 and 2,112/302/603 on D2.
 
-## Slide 6 — Transfer learning: a frozen backbone and a small head
+## Slide 6 — Transfer learning: a frozen backbone and a new head
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
-- Left column trains 2.3 M parameters, right column 82 k.
-- Why: with 189 images, updating the backbone memorises the training set.
-- On D2 both settings reach 0.995 — freezing costs nothing in accuracy and saves 27x the parameters.
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:50**
+- Left column trains 2.3 M parameters, right column 82 k; every convolution layer is frozen.
+- Read the head aloud: pooling, flatten, 64-unit layer with ReLU, dropout 0.5, two-unit softmax.
+- On D2 the frozen model matches the fully trained one.
 
 ## Slide 7 — The network
 
 **PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
-- Read the shapes left to right: 224×224×3 → 7×7×C → 1×1×C → 64 → 64 → 2.
-- Blue is frozen, green is trained: 82,114 parameters = 3.56 % of MobileNetV2.
+- Walk the diagram left to right and read the shapes: 224×224×3 → 7×7×C → 1×1×C → 64 → 2.
+- Blue blocks are frozen, green blocks are trained.
 
 ## Slide 8 — Algorithm 1 — one training run
 
 **PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
-- Read Algorithm 1: freeze the backbone, build the head, train the head only, evaluate ten metrics on the frozen test split.
-- The same procedure ran 66 times.
+- Read Algorithm 1: freeze the backbone, build the head, compute features without gradients, update only the head, evaluate once on the test split.
 
-## Slide 9 — Experimental setup and compute cost
+## Slide 9 — Experimental setup
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:50**
-- Each square is one completed run: 11 x 3 x 2 = 66, none missing.
-- Then the measured cost: D1 runs take about 41 seconds, D2 about 7 minutes, so the whole matrix is 250 minutes on one T4 (~4.2 GPU hours).
-- Close with the shared hyper-parameters: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:40**
+- Each square is one completed run: 11 backbones × 3 optimisers × 2 datasets = 66, all with the same split and the same head.
+- Then the shared settings: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.
 
 ## Slide 10 — What one run looks like, epoch by epoch
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:45**
-- Left: training loss keeps falling. Right: accuracy saturates after ~10 epochs, and validation loss drifts up after that — the epoch budget only matters for the heaviest backbones.
+- MobileNetV2 on D1 with Adam: training loss falls to 0.01, accuracy reaches 1.00 in ten epochs, validation loss then rises while accuracy stays flat — the extra epochs fit noise.
 
-## Slide 11 — How the results are measured
-
-**PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
-- How we test: one pass over the frozen test split, then ten metrics and a 2×2 confusion matrix; positive class is defect.
-- Point out why: on 54 test images one mistake costs 1.85 points, so accuracy alone is not enough.
-
-## Slide 12 — Results: eleven backbones
-
-**PART 5 / 8 · presenter 【NAME 5】 · budget 0:45**
-- Read the D2 numbers: mean 0.9849 over 603 test images, from 0.920 (EffNet-V2M) to 0.997 (Xception); the D1 dots show the same ranking.
-- Do not announce a winner.
-
-## Slide 13 — Results: what tuning changes
+## Slide 11 — Results: eleven backbones
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
-- All on D2: the optimiser moves the number by 0-4 points and only for the weakest backbone; the ranking never changes.
-- State the limitation: the learning rate was not swept.
+- Read the D2 numbers: mean 0.9849 over 603 test images, from 0.920 for EffNet-V2M to 0.997 for Xception; VGG16, VGG19 and MobileNetV2 are above 0.990.
+- The grey dots are the same ranking on the 54-image D1 split.
 
-## Slide 14 — Results against the reported values
+## Slide 12 — Results: what tuning changes
 
-**PART 8 / 8 · presenter 【NAME 8】 · budget 1:00**
-- Walk the delta chart, then the trap: three EfficientNets report F1 = 0, so the raw gap is inflated. Fair comparison: +8.2 points on D1.
+**PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
+- The optimiser moves the score by 0-4 points and only for the weakest backbone; the backbone ranking never changes.
+- The right panel shows EffNet-V2M on D2 oscillating between 0.86 and 0.99 from epoch to epoch.
 
-## Slide 15 — Control: random split versus source-grouped split
+## Slide 13 — Results compared with the reported values
 
-**PART 8 / 8 · presenter 【NAME 8】 · budget 0:50**
-- The augmented set was rebuilt with provenance and trained twice: random split vs split grouped by source image.
-- |Δacc| ≤ 1.5 %, mostly negative — a negative control result.
+**PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
+- Overall we are +19.5 on D1 and +13.9 on D2, but three EfficientNet cells report F1 = 0 in the paper, so the fair comparison is +8.2 and +7.9.
+- The rest is explained by the unpublished split and the paper's input normalisation.
 
-## Slide 16 — What the model looks at
+## Slide 14 — Live demo
 
-**PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
-- Attention sits on the part, not the background.
-- But the map is 7 × 7 with a 4 × 4 pooling step, so it marks a region, not a defect mask.
-
-## Slide 17 — Deployment cost
-
-**PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
-- MobileNetV2 22.9 ms on CPU versus VGG16 165 ms; on a GPU everything is under 40 ms.
-- At equal accuracy MobileNetV2 is 58× smaller — that is the engine we deploy.
-
-## Slide 18 — Live demo
-
-**PART 6 / 8 · presenter 【NAME 6】 with 【NAME 7】 operating · budget 2:00**
-- Hand over to the live demo: load a defect photo, then a clean one, show the log, export the CSV.
+**PART 6 / 8 · presenter 【NAME 6】, operated by 【NAME 7】 · budget 2:00**
+- Hand over to the live demo: load a defect photo, then a clean one, show the verdict with confidence and cycle time, then the session log and the CSV export.
 - If anything fails, play the fallback recording 【TBD: demo_fallback.mp4】 and keep talking.
 
-## Slide 19 — Conclusions and limitations
+## Slide 15 — Conclusions
 
-**PART 8 / 8 · presenter 【NAME 8】 · budget 0:45**
-- Three conclusions and four limitations, one sentence each.
-- End on the limitation: classification only, 54 test images, learning rate not swept.
+**PART 8 / 8 · presenter 【NAME 8】 · budget 0:50**
+- Three conclusions: frozen features are enough (0.9849 on D2); accuracy saturates, so the optimiser matters less than the data; MobileNetV2 matches VGG16 with 58× fewer parameters.
+- Then the limitation: 54 D1 test images and no learning-rate sweep.
 
-## Slide 20 — Thank you
+## Slide 16 — Thank you
 
 **PART 8 / 8 · presenter: all eight on stage · budget 0:20**
 - Thank the audience, point at the repository link, hand over to Q&A.

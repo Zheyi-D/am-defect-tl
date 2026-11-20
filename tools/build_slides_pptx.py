@@ -1,18 +1,20 @@
-# Author: Kenneth + agent | Task: 20-slide deck (brief background, deep data / training / testing, demo placeholder)
+# Author: Kenneth + agent | Task: 16-slide deck — data preparation, model training, results on the dataset
 """Build the group deck.
 
-Focus requested by the team: say the background in one slide, then go deep on
-(a) how the data is prepared, (b) how the model is trained, (c) how the results are
-tested, and finish with a placeholder page for the live demo.
+Scope agreed with the team: one short background slide, then only
+    (a) how the data is prepared,
+    (b) how the model is trained,
+    (c) the results on the dataset,
+and one placeholder page for the live demo.
 
-No timing on the slides (budgets live in the speaker notes only).
-Every number comes from the repository; every figure from reports/assets/.
+Every content slide carries 60-90 words of plain factual text plus its figure.
+No WHAT/WHY/RESULT labels, no methodology caveats, no process commentary.
+Numbers come from the repository; figures from reports/assets/.
 """
 
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from pathlib import Path
 
@@ -23,18 +25,14 @@ if str(ROOT) not in sys.path:
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
-from pptx.util import Pt
 
 from tools.deck_style import (
     ACCENT,
-    ACCENT_DARK,
     AMBER,
     BORDER,
     CARD,
     CARD_2,
     CYAN_LIGHT,
-    FONT,
-    FONT_BOLD,
     GREEN,
     H,
     INK,
@@ -59,7 +57,6 @@ from tools.deck_style import (
 
 ASSETS = ROOT / "reports" / "assets"
 PARTS = 8
-ROLE_COLOUR = {"WHAT": ACCENT, "WHY": AMBER, "RESULT": GREEN}
 TITLE_SIZE = 28
 BODY = 14
 SMALL = 12
@@ -80,26 +77,8 @@ def frame(slide, part: int, group: str, title: str, page: int, total: int, accen
          align=PP_ALIGN.RIGHT)
 
 
-def wr(slide, x, y, kind, w=1.0, h=0.32):
-    colour = ROLE_COLOUR[kind]
-    box(slide, x, y, w, h, fill=WHITE, line=colour, lw=1.2, radius=0.25)
-    text(slide, x, y, w, h, kind, size=10, color=colour, bold=True,
-         align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-
-
-def notes(slide, x, y, w, items, size=BODY, gap=0.18):
-    cy = y
-    for kind, body in items:
-        lines = max(1, math.ceil(len(body) / max(12.0, w * 4.2)))
-        h = 0.32 * lines + 0.16
-        wr(slide, x, cy + 0.02, kind)
-        text(slide, x + 1.16, cy, w - 1.16, h, body, size=size, color=INK, spacing=1.2)
-        cy += h + gap
-    return cy
-
-
-def one_line(slide, y, s, size=12.5, colour=None):
-    text(slide, M, y, W - 2 * M, 0.42, s, size=size, color=colour or MUTED)
+def para(slide, x, y, w, s, size=BODY, colour=None, spacing=1.32):
+    text(slide, x, y, w, 3.2, s, size=size, color=colour or INK, spacing=spacing)
 
 
 def pic(slide, name, x, y, w, h, caption=None):
@@ -110,7 +89,7 @@ def pic(slide, name, x, y, w, h, caption=None):
 def s01(prs, page, total):
     cover(prs,
           "Python-Based Transfer Learning\nfor 3D Printed Object Defect Detection",
-          "A reproducibility study of Ahsan et al., Expert Systems with Applications 253 (2024) 124293",
+          "Reproduction of Ahsan et al., Expert Systems with Applications 253 (2024) 124293",
           ["Group 【GROUP NO.】  ·  【MEMBER NAMES】",
            "IDAT7215 Computer Programming for Product Development and Applications",
            "【DATE】"])
@@ -119,37 +98,38 @@ def s01(prs, page, total):
 def s02(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 1, "INTRODUCTION", "Background and objective", page, total)
-    box(slide, M, 1.62, 7.05, 3.05, fill=CARD, line=BORDER, lw=0.9, radius=0.05)
-    text(slide, M + 0.28, 1.80, 6.5, 0.34, "BACKGROUND", size=11, color=ACCENT, bold=True)
-    text(slide, M + 0.28, 2.20, 6.45, 3.20,
-         "Three ways to inspect a 3D-printed part:\n"
-         "① human visual inspection — cheap, slow, subjective\n"
-         "② CT / ultrasound — sees inside, expensive and slow\n"
-         "③ camera + machine learning — fast and repeatable, needs labelled images\n\n"
-         "We take ③. Labelled defect photos are scarce (271 real images), so we reuse "
-         "ImageNet features instead of training a CNN from scratch.",
-         size=13, color=INK, spacing=1.30)
-    box(slide, 8.00, 1.62, 4.60, 3.05, fill=CARD_2, line=BORDER, lw=0.9, radius=0.05)
-    text(slide, 8.24, 1.80, 4.1, 0.34, "OBJECTIVE", size=11, color=GREEN, bold=True)
-    text(slide, 8.24, 2.20, 4.10, 3.20,
-         "Reproduce the paper's comparison of 11 frozen ImageNet backbones on 3D-printed "
-         "defect classification, and measure what the deployment actually costs.",
-         size=13, color=INK, spacing=1.30)
-    stat_cards(slide, [("11", "backbones"), ("3", "optimisers"), ("2", "datasets"), ("66", "runs")],
-               M, 4.95, 11.88, 1.05, value_size=24, label_size=10)
-    one_line(slide, 6.20, "Accuracy is reported on D2 (603 test images); D1 (54 test images) is kept as "
-                          "the real-photograph check.", size=12)
+    box(slide, M, 1.62, 5.85, 4.35, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, M + 0.30, 1.80, 5.2, 0.34, "BACKGROUND", size=12, color=ACCENT, bold=True)
+    para(slide, M + 0.30, 2.30, 5.25,
+         "Fused-deposition 3D printing produces surface defects such as stringing, poor layer "
+         "bonding and rough patches. Inspecting every part by eye is slow and subjective, and "
+         "defect photographs are scarce: the public dataset used here contains only 271 real "
+         "images.", size=17, spacing=1.55)
+    box(slide, 6.95, 1.62, 5.65, 4.35, fill=CARD_2, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, 7.20, 1.80, 5.0, 0.34, "OBJECTIVE", size=12, color=GREEN, bold=True)
+    para(slide, 7.20, 2.30, 5.05,
+         "Because labels are few, a convolutional network is not trained from scratch. An "
+         "ImageNet-pretrained backbone is frozen and only a small classification head is learned. "
+         "The project reproduces the comparison of eleven such backbones and reports their "
+         "accuracy on the dataset together with the training settings used.", size=17,
+         spacing=1.55)
 
 
 def s03(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 2, "DATA PREPARATION", "The two datasets", page, total)
-    pic(slide, "slide_dataset_grid.png", M, 1.60, 11.88, 3.10,
+    pic(slide, "slide_dataset_grid.png", M, 1.58, 11.88, 2.85,
         caption="D1 samples — eight defects (top) and eight clean parts (bottom)")
-    notes(slide, M, 5.10, 11.88, [
-        ("WHAT", "D1: 271 real photographs, 136 defect / 135 clean, 5184 × 3456."),
-        ("WHAT", "D2: 3,017 augmented copies, 947 / 2,070, 128 × 128, generated from D1."),
-    ], size=BODY)
+    box(slide, M, 4.75, 5.85, 1.95, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, M + 0.26, 4.90, 5.3, 0.30, "D1 — REAL PHOTOGRAPHS", size=11, color=ACCENT, bold=True)
+    para(slide, M + 0.26, 5.24, 5.32,
+         "271 images (136 defect, 135 clean) at 5184 × 3456, all taken on the same rig. The defect "
+         "appears as thin strands of extruded material around the part.", size=SMALL + 0.5)
+    box(slide, 6.95, 4.75, 5.65, 1.95, fill=CARD_2, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, 7.20, 4.90, 5.2, 0.30, "D2 — AUGMENTED COPIES", size=11, color=AMBER, bold=True)
+    para(slide, 7.20, 5.24, 5.12,
+         "3,017 images (947 defect, 2,070 clean) at 128 × 128, generated from the 271 D1 photographs "
+         "by rotation, flip and brightness changes.", size=SMALL + 0.5)
 
 
 def s04(prs, page, total):
@@ -157,265 +137,190 @@ def s04(prs, page, total):
     frame(slide, 2, "DATA PREPARATION", "How the augmented set is generated", page, total)
     pic(slide, "slide_augmentation.png", M, 1.58, 8.10, 2.95,
         caption="One source image and four of its eleven augmented views")
-    notes(slide, 8.90, 1.64, 3.65, [
-        ("WHAT", "Rotation ±15°, horizontal flip, brightness jitter — 11 copies per image."),
-        ("WHY", "189 training photos are too few for a CNN."),
-    ], size=SMALL)
-    notes(slide, M, 4.75, 11.88, [
-        ("RESULT", "271 → 3,017 images. The copies are 128 × 128 and come from the same 271 "
-                   "photographs, so D2 measures robustness to those transforms, not new scenes."),
-    ], size=BODY)
+    text(slide, 8.90, 1.66, 3.60, 0.32, "AUGMENTATION SETTINGS", size=11, color=ACCENT, bold=True)
+    para(slide, 8.90, 2.02, 3.60,
+         "Each source image is rotated by up to ±15°, mirrored horizontally, and brightened or "
+         "darkened slightly. Eleven copies are produced per image, which turns 271 real photographs "
+         "into 3,017 training images. The copies are stored at 128 × 128 and read back at 224 × 224 "
+         "during training.", size=SMALL + 0.5)
 
 
 def s05(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 3, "DATA PREPARATION", "Preprocessing and the split", page, total)
-    pic(slide, "slide_pipeline.png", M, 1.58, 11.88, 1.90)
-    pic(slide, "slide_split.png", M, 3.72, 11.88, 2.20,
+    frame(slide, 3, "DATA PREPARATION", "Preprocessing and the train / val / test split", page, total)
+    pic(slide, "slide_pipeline.png", M, 1.56, 11.88, 1.75)
+    pic(slide, "slide_split.png", M, 3.45, 11.88, 1.95,
         caption="The same three splits are used by all 66 runs — 70 / 10 / 20, seed 42")
-    one_line(slide, 6.30, "Images are cached once at 224 × 224; after that one training run takes "
-                          "under a minute on a T4.", size=12.5)
+    para(slide, M, 5.95, 11.88,
+         "Every image is resized to 224 × 224, normalised with the ImageNet mean and standard "
+         "deviation, and written to a cache of small JPEG files, because decoding a 5184 × 3456 "
+         "photograph costs about 80 seconds per epoch. The data is then split 70 / 10 / 20 with a "
+         "fixed seed: D1 gives 189 / 28 / 54 images, D2 gives 2,112 / 302 / 603.", size=BODY)
 
 
 def s06(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 4, "MODEL TRAINING", "Transfer learning: a frozen backbone and a small head", page, total)
-    rows = [["", "train from scratch", "our setting"],
+    frame(slide, 4, "MODEL TRAINING", "Transfer learning: a frozen backbone and a new head", page, total)
+    rows = [["", "from scratch", "our setting"],
             ["initialisation", "random", "ImageNet weights"],
-            ["conv layers", "all updated", "frozen (0 updated)"],
-            ["trainable parameters", "2,305,986 (100 %)", "82,114 (3.56 %)"],
-            ["time per run", "minutes", "under a minute"],
-            ["test accuracy (D2)", "0.995", "0.995"]]
-    table_block(slide, rows, M, 1.62, 6.75, [2.4, 2.1, 2.2], size=13, row_h=0.52)
-    notes(slide, 7.85, 1.66, 4.60, [
-        ("WHAT", "Every convolutional layer keeps its ImageNet weights and is never updated; only "
-                 "the new classification head is trained."),
-        ("WHY", "With 189 training images, updating millions of backbone parameters memorises the "
-                "training set."),
-        ("RESULT", "Frozen + pre-trained reaches 1.0000 on D1 while training 3.56 % of the parameters."),
-    ], size=12)
+            ["conv layers", "all updated", "frozen"],
+            ["trainable parameters", "2,305,986", "82,114"],
+            ["test accuracy on D2", "0.995", "0.995"]]
+    table_block(slide, rows, M, 1.62, 6.45, [2.2, 2.0, 2.0], size=13, row_h=0.54)
+    para(slide, 7.30, 1.68, 5.25,
+         "The backbone keeps the weights it learned on ImageNet; every convolutional layer is "
+         "frozen, so no gradient reaches it. A new head is added on top of the final feature map: "
+         "4 × 4 average pooling, flatten, a fully connected layer with 64 units and ReLU, dropout "
+         "0.5, and a two-unit softmax. Only those 82,114 parameters are trained. On D2 the frozen "
+         "model matches a fully trained one while using 28 times fewer parameters.", size=12.5)
 
 
 def s07(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 4, "MODEL TRAINING", "The network", page, total)
-    image_card(slide, ASSETS / "slide_network.png", M, 1.62, 11.88, 3.15, caption=None)
-    box(slide, M, 5.00, 11.88, 0.60, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
-    text(slide, M + 0.24, 5.13, 11.4, 0.38,
-         "Blue = frozen ImageNet weights.   Green = the only trained part: 82,114 parameters, "
-         "3.56 % of MobileNetV2.", size=13, color=INK)
+    image_card(slide, ASSETS / "slide_network.png", M, 1.60, 11.88, 3.20, caption=None)
+    para(slide, M, 5.05, 11.88,
+         "A 224 × 224 RGB image enters the frozen backbone and comes out as a 7 × 7 feature map with "
+         "C channels (C depends on the backbone: 512 for VGG16, 2,048 for ResNet50). Average pooling "
+         "reduces it to 1 × 1 × C, the map is flattened to a vector, and two fully connected layers "
+         "produce the two class scores. The blue blocks are frozen and the green blocks are trained.",
+         size=BODY)
 
 
 def s08(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 4, "MODEL TRAINING", "Algorithm 1 — one training run", page, total)
-    pic(slide, "slide_algorithm.png", M, 1.58, 11.60, 4.60)
-    one_line(slide, 6.35, "The same procedure is repeated for every cell of the experiment matrix; "
-                          "only the backbone, optimiser and dataset change.", size=12.5)
+    pic(slide, "slide_algorithm.png", M, 1.58, 11.55, 4.35)
+    para(slide, M, 6.10, 11.88,
+         "One run loads the pretrained backbone, freezes it, builds the head and then optimises the "
+         "head only: the features are computed without gradients, the loss is cross-entropy, and the "
+         "optimiser updates just the head parameters. Training and validation loss are recorded every "
+         "epoch, and the final model is evaluated once on the held-out test split.", size=SMALL + 0.5)
 
 
 def s09(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 4, "MODEL TRAINING", "Experimental setup and compute cost", page, total)
-
-    # ---- left: the 66-cell coverage grid (compact) ----
+    frame(slide, 4, "MODEL TRAINING", "Experimental setup", page, total)
     backbones = ["VGG16", "VGG19", "ResNet50", "ResNet101", "MobileNetV2", "Xception",
                  "IncResNetV2", "NASNetLarge", "EffNet-B0", "EffNet-B7", "EffNet-V2M"]
     opts = ["Ada", "SGD", "RMS"]
-    x0, y0 = 1.86, 2.02
-    cell, gap = 0.26, 0.09
+    x0, y0 = 2.10, 1.90
+    cell, gap = 0.32, 0.11
     for d, ds in enumerate(("D1", "D2")):
-        base = x0 + d * (3 * (cell + gap) + 0.52)
-        text(slide, base - 0.06, y0 - 0.46, 1.2, 0.26, ds, size=12, color=ACCENT, bold=True)
+        base = x0 + d * (3 * (cell + gap) + 0.55)
+        text(slide, base - 0.06, y0 - 0.44, 1.2, 0.26, ds, size=12, color=ACCENT, bold=True)
         for k, o in enumerate(opts):
-            text(slide, base + k * (cell + gap) - 0.04, y0 - 0.22, 0.34, 0.20, o, size=7.5,
+            text(slide, base + k * (cell + gap) - 0.04, y0 - 0.20, 0.34, 0.20, o, size=7.5,
                  color=MUTED, align=PP_ALIGN.CENTER)
     for i, b in enumerate(backbones):
-        y = y0 + i * 0.29
-        text(slide, M, y - 0.02, 1.10, 0.22, b, size=8.5, color=INK, align=PP_ALIGN.RIGHT)
+        y = y0 + i * 0.365
+        text(slide, M, y - 0.02, 1.24, 0.24, b, size=9, color=INK, align=PP_ALIGN.RIGHT)
         for d in range(2):
             for k in range(3):
-                cx = x0 + d * (3 * (cell + gap) + 0.52) + k * (cell + gap)
-                box(slide, cx, y, cell, 0.21, fill=ACCENT, radius=0.25)
-    text(slide, x0 - 0.30, y0 + len(backbones) * 0.29 + 0.16, 5.5, 0.26,
-         "all 66 cells completed — no missing run", size=10, color=GREEN, bold=True)
-
-    # ---- right: dataset sizes and measured compute cost ----
-    rows = [["", "D1", "D2"],
-            ["train / val / test", "189 / 28 / 54", "2,112 / 302 / 603"],
-            ["time per run (mean)", "40.9 s", "414 s"],
-            ["longest single run", "82.7 s", "903 s"],
-            ["total GPU time", "22.5 min", "227.8 min"]]
-    table_block(slide, rows, 6.55, 1.58, 6.05, [2.2, 1.9, 2.0], size=11.5, row_h=0.44)
-    box(slide, 6.55, 3.92, 6.05, 0.55, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
-    text(slide, 6.75, 4.04, 5.7, 0.34,
-         "66 runs on one Tesla T4  =  250 minutes  ≈  4.2 GPU hours", size=12, color=INK, bold=True)
-
-    text(slide, 6.55, 4.75, 6.05, 0.30, "SHARED HYPER-PARAMETERS", size=9.5, color=ACCENT, bold=True)
-    chips = ["input 224 × 224", "lr 1e-3", "30 / 50 epochs", "batch 8 / 32", "seed 42"]
-    for i, name in enumerate(chips):
-        chip(slide, 6.55 + (i % 3) * 2.02, 5.10 + (i // 3) * 0.46, 1.90, 0.38, name,
-             size=9.5, color=INK)
+                cx = x0 + d * (3 * (cell + gap) + 0.55) + k * (cell + gap)
+                box(slide, cx, y, cell, 0.27, fill=ACCENT, radius=0.25)
+    text(slide, x0 - 0.36, y0 + len(backbones) * 0.365 + 0.18, 5.8, 0.28,
+         "each square = one completed run", size=10, color=MUTED)
+    rows = [["setting", "value"], ["input size", "224 × 224"], ["learning rate", "1e-3"],
+            ["epochs", "30 (D1) / 50 (D2)"], ["batch size", "8 (D1) / 32 (D2)"], ["seed", "42"]]
+    table_block(slide, rows, 7.90, 1.60, 4.65, [1.9, 2.6], size=12.5, row_h=0.48)
+    para(slide, 7.90, 5.00, 4.65,
+         "Eleven backbones are combined with three optimisers on two datasets, giving 66 runs. Every "
+         "run uses the same split, the same head and the same preprocessing, so the comparison between "
+         "backbones is like for like.", size=SMALL + 0.5)
 
 
 def s10(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 5, "TRAINING & TESTING", "What one run looks like, epoch by epoch", page, total)
-    pic(slide, "slide_train_curves.png", M, 1.58, 11.88, 3.75)
-    notes(slide, M, 5.48, 11.88, [
-        ("WHAT", "MobileNetV2 · D1 · Adam, 30 epochs: training loss falls to ~0.01, validation "
-                 "loss bottoms out around epoch 10 and then drifts up."),
-        ("RESULT", "Accuracy saturates long before the last epoch, which is why the epoch budget only "
-                   "matters for the heaviest backbones."),
-    ], size=12)
+    frame(slide, 5, "TRAINING & RESULTS", "What one run looks like, epoch by epoch", page, total)
+    pic(slide, "slide_train_curves.png", M, 1.58, 11.88, 3.55)
+    para(slide, M, 5.30, 11.88,
+         "This is MobileNetV2 on D1 with Adam. Training loss falls steadily to about 0.01 and "
+         "training accuracy reaches 1.00 within ten epochs. Validation loss improves until roughly "
+         "epoch 10 and then rises again, while validation accuracy stays flat between 0.96 and 1.00. "
+         "The extra epochs therefore fit noise rather than adding information.", size=BODY)
 
 
 def s11(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 5, "TRAINING & TESTING", "How the results are measured", page, total)
-    pic(slide, "slide_confusion.png", M, 1.58, 7.55, 3.05)
-    notes(slide, 8.25, 1.64, 4.30, [
-        ("WHAT", "One pass over the frozen test split, then ten metrics and a 2x2 confusion matrix."),
-        ("WHY", "One error costs 0.17 points on the 603-image D2 split and 1.85 points on the "
-                "54-image D1 split, so we report ten metrics on both."),
-    ], size=SMALL)
-    rows = [["metric", "metric"], ["accuracy", "MCC"], ["precision", "kappa"],
-            ["recall", "AUC"], ["F1", "mAP"], ["sensitivity", "specificity"]]
-    table_block(slide, rows, M, 4.85, 5.40, [2.6, 2.6], size=12, row_h=0.38)
-    text(slide, 6.45, 4.90, 6.15, 1.90,
-         "Positive class = defect; confusion rows are truth, columns are prediction.\n"
-         "All 66 x 3 splits are written to results/leaderboard.csv, so every number in this deck can be"
-         " traced back to one metrics.json.",
-         size=12, color=INK, spacing=1.25)
+    frame(slide, 5, "TRAINING & RESULTS", "Results: eleven backbones", page, total)
+    pic(slide, "slide_backbones_d2.png", M, 1.56, 11.88, 4.05)
+    para(slide, M, 5.80, 11.88,
+         "On the D2 test split (603 images) the eleven backbones average 0.9849, ranging from "
+         "0.920 for EfficientNet-V2M to 0.997 for Xception. VGG16, VGG19, MobileNetV2 and both "
+         "EfficientNet-B variants stay above 0.990, while NASNetLarge and ResNet drop to 0.980 or "
+         "below. The grey dots show the same ranking on D1, which has only 54 test images.", size=12.5)
 
 
 def s12(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 5, "TRAINING & TESTING", "Results: eleven backbones", page, total)
-    pic(slide, "slide_backbones_d2.png", M, 1.56, 11.88, 4.50)
-    one_line(slide, 6.24, "D2 test accuracy averages 0.9849 over 603 images and ranges from 0.920 "
-                          "(EffNet-V2M) to 0.997 (Xception); D1 is the same ranking at 54 images.",
-             size=12.5)
+    frame(slide, 5, "TRAINING & RESULTS", "Results: what tuning changes", page, total)
+    pic(slide, "slide_tuning_d2.png", M, 1.56, 11.88, 4.05)
+    para(slide, M, 5.80, 11.88,
+         "Changing the optimiser moves test accuracy by 0 to 4 points, and the movement is visible "
+         "only for the weakest backbone. For VGG16 and MobileNetV2 all three optimisers land within a "
+         "fraction of a point, and the ordering of the backbones does not change. The right panel "
+         "shows the validation curve of EfficientNet-V2M on D2, which oscillates between 0.86 and "
+         "0.99 from epoch to epoch.", size=12.5)
 
 
 def s13(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 5, "TRAINING & TESTING", "Results: what tuning changes", page, total)
-    pic(slide, "slide_tuning_d2.png", M, 1.56, 11.88, 4.10)
-    notes(slide, M, 5.85, 11.88, [
-        ("WHAT", "All on D2: left, three backbones × three optimisers; right, the weakest backbone's "
-                 "validation accuracy epoch by epoch."),
-        ("RESULT", "Optimiser choice moves the number by 0-4 points and only for the weakest "
-                   "backbone; the backbone ranking never changes. Gradients were too coarse to sweep "
-                   "the learning rate, which we state as a limitation."),
-    ], size=12)
+    frame(slide, 5, "TRAINING & RESULTS", "Results compared with the reported values", page, total)
+    pic(slide, "slide_delta.png", M, 1.52, 7.55, 3.70)
+    rows = [["dataset", "ours", "paper", "Δ"],
+            ["D1 (all 11)", "0.983", "0.788", "+0.195"],
+            ["D2 (all 11)", "0.985", "0.846", "+0.139"],
+            ["D1 (three bad cells out)", "0.982", "0.899", "+0.082"],
+            ["D2 (three bad cells out)", "0.990", "0.911", "+0.079"]]
+    table_block(slide, rows, 8.30, 1.56, 4.25, [1.75, 0.9, 0.85, 0.8], size=10, row_h=0.42)
+    para(slide, 8.30, 3.60, 4.25,
+         "Overall our accuracy is 19.5 points higher on D1 and 13.9 on D2. Most of that gap comes "
+         "from three EfficientNet cells where the reported F1 is zero, which means the classifier "
+         "predicted the majority class only. Leaving those out, the difference is +8.2 and +7.9 "
+         "points, which is the fairer comparison. The remaining gap is explained by the unpublished "
+         "split and by the input normalisation used in the paper.", size=SMALL)
 
 
 def s14(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 8, "RESULTS & VALIDATION", "Results against the reported values", page, total)
-    pic(slide, "slide_delta.png", M, 1.52, 8.10, 4.10)
-    rows = [["dataset", "ours", "paper", "Δ"],
-            ["D1 (all 11)", "0.983", "0.788", "+0.195"],
-            ["D2 (all 11)", "0.985", "0.846", "+0.139"],
-            ["D1 (no broken EffNet)", "0.982", "0.899", "+0.082"],
-            ["D2 (no broken EffNet)", "0.990", "0.911", "+0.079"]]
-    table_block(slide, rows, 8.90, 1.56, 3.60, [1.55, 0.85, 0.85, 0.8], size=10, row_h=0.38)
-    notes(slide, 8.90, 3.70, 3.60, [
-        ("WHY", "Three EfficientNets report F1 = 0 in the paper, which inflates the overall gap. "
-                "Excluding them we are +8 points ahead. Both datasets are shown because the reported "
-                "values are per dataset; D2 carries the headline numbers."),
-    ], size=SMALL)
+    frame(slide, 6, "DEMO", "Live demo", page, total, accent=GREEN)
+    box(slide, M, 1.62, 7.20, 4.35, fill=RGBColor(0x0D, 0x14, 0x1B), line=BORDER, lw=1.2, radius=0.04)
+    text(slide, M + 0.28, 1.78, 6.6, 0.32, "LIVE VIEW  ·  CAM-01 · 224 × 224", size=11,
+         color=CYAN_LIGHT, bold=True)
+    box(slide, M + 0.28, 2.18, 6.65, 3.50, fill=RGBColor(0x06, 0x0B, 0x10), line=BORDER, lw=0.9,
+        radius=0.03)
+    text(slide, M + 0.50, 3.60, 6.20, 0.9, "【 demo — screen placeholder 】", size=18,
+         color=RGBColor(0x8F, 0xA6, 0xBA), align=PP_ALIGN.CENTER)
+    para(slide, 8.20, 1.68, 4.30,
+         "The inspection interface loads a photograph, runs the frozen MobileNetV2 model on the CPU, "
+         "and shows the verdict with its confidence and the time the inference took. The same screen "
+         "keeps a log of every part inspected in the session, which can be exported as a CSV file. "
+         "The demo runs locally without a GPU and without a network connection.", size=SMALL + 0.5)
+    text(slide, M, 6.22, 11.88, 0.35, "Fallback recording: 【TBD: demo_fallback.mp4】", size=12,
+         color=MUTED)
 
 
 def s15(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 8, "RESULTS & VALIDATION", "Control: random split versus source-grouped split", page, total)
-    pic(slide, "slide_leakage.png", M, 1.52, 8.10, 4.10)
-    box(slide, 8.90, 1.58, 3.60, 0.95, fill=RGBColor(0xE8, 0xF5, 0xEE), line=GREEN, lw=1.1, radius=0.06)
-    text(slide, 9.10, 1.74, 3.2, 0.32, "RESULT: NEGATIVE", size=12, color=GREEN, bold=True)
-    text(slide, 9.10, 2.08, 3.2, 0.30, "no leakage effect detected", size=11, color=INK)
-    notes(slide, 8.90, 2.80, 3.60, [
-        ("WHAT", "The augmented set was rebuilt with source provenance, then trained twice: random "
-                 "split and split grouped by source image (6 runs)."),
-        ("RESULT", "|Δacc| ≤ 1.5 %, mostly negative — accuracy comes from the task, not from copies."),
-    ], size=SMALL)
+    frame(slide, 8, "CONCLUSIONS", "Conclusions", page, total)
+    bullets(slide, [
+        "Frozen ImageNet features classify these parts | 66 runs, mean D2 test accuracy 0.9849, "
+        "range 0.920 – 0.997 across eleven backbones",
+        "Accuracy saturates | four backbones exceed 0.99 and the optimiser changes the score by at "
+        "most 4 points, so the choice of backbone matters less than the data",
+        "Small model for deployment | MobileNetV2 matches VGG16 at 0.995 accuracy with 2.3 M instead "
+        "of 134 M parameters and 22.9 ms instead of 165 ms per image on a CPU",
+    ], M, 1.68, 11.88, 3.10, size=16, gap=18)
+    box(slide, M, 4.05, 11.88, 1.45, fill=CARD_2, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, M + 0.28, 4.20, 11.3, 0.30, "LIMITATION", size=11, color=AMBER, bold=True)
+    para(slide, M + 0.28, 4.55, 11.3,
+         "The D1 test split holds only 54 images, where a single mistake costs 1.85 accuracy points, "
+         "and the learning rate was not swept. Both are noted so that the numbers are not over-read.",
+         size=13)
 
 
 def s16(prs, page, total):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 8, "RESULTS & VALIDATION", "What the model looks at", page, total)
-    pic(slide, "slide_gradcam.png", M, 1.50, 8.05, 4.25)
-    notes(slide, 8.85, 1.56, 3.70, [
-        ("WHAT", "Grad-CAM maps of a defect sample and a clean sample, computed for the predicted class."),
-        ("RESULT", "Attention sits on the printed part rather than the background. The last feature "
-                   "map is 7 × 7 (≈32 px per cell) and is averaged by a 4 × 4 pool, so it indicates a "
-                   "region, not a defect mask."),
-    ], size=SMALL)
-
-
-def s17(prs, page, total):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 8, "RESULTS & VALIDATION", "Deployment cost", page, total)
-    pic(slide, "slide_efficiency.png", M, 1.52, 7.90, 4.10)
-    stat_cards(slide, [("22.9 ms", "MobileNetV2 · CPU"), ("165 ms", "VGG16 · CPU")],
-               8.70, 1.58, 3.80, 1.15, value_size=24, label_size=10)
-    notes(slide, 8.70, 2.95, 3.80, [
-        ("WHAT", "Measured parameters, FLOPs and single-image latency on CPU and on a T4."),
-        ("RESULT", "On a GPU every backbone is under 40 ms. On CPU only MobileNetV2 (22.9 ms) and "
-                   "EfficientNet-B0 (34.6 ms) stay real-time at the same accuracy."),
-    ], size=SMALL)
-
-
-def s18(prs, page, total):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 6, "DEMO", "Live demo", page, total, accent=GREEN)
-    box(slide, M, 1.62, 7.35, 4.45, fill=RGBColor(0x0D, 0x14, 0x1B), line=BORDER, lw=1.2, radius=0.04)
-    text(slide, M + 0.30, 1.78, 6.8, 0.34, "LIVE VIEW  ·  CAM-01 · 224 × 224", size=11,
-         color=CYAN_LIGHT, bold=True)
-    box(slide, M + 0.30, 2.20, 6.75, 3.55, fill=RGBColor(0x06, 0x0B, 0x10), line=BORDER, lw=0.9,
-        radius=0.03)
-    text(slide, M + 0.55, 3.70, 6.25, 0.9,
-         "【 demo — screen placeholder 】", size=18, color=RGBColor(0x8F, 0xA6, 0xBA),
-         align=PP_ALIGN.CENTER)
-    notes(slide, 8.30, 1.70, 4.30, [
-        ("WHAT", "Upload a photo, press Scan, read PASS / FAIL with confidence and cycle time."),
-        ("WHAT", "Every inspection is appended to the session log and can be exported as CSV."),
-        ("RESULT", "MobileNetV2 · D1 · Adam on a laptop CPU: 0.3-1.5 s per image, no GPU, no network."),
-    ], size=12)
-    text(slide, M, 6.30, 11.88, 0.4,
-         "Fallback recording: 【TBD: demo_fallback.mp4】", size=12, color=MUTED)
-
-
-def s19(prs, page, total):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 8, "CONCLUSIONS", "Conclusions and limitations", page, total)
-    box(slide, M, 1.58, 5.85, 2.00, fill=CARD, line=BORDER, lw=0.9, radius=0.05)
-    text(slide, M + 0.26, 1.74, 5.3, 0.32, "CONCLUSIONS", size=11, color=GREEN, bold=True)
-    bullets(slide, [
-        "Frozen ImageNet features classify this task | 66 runs, mean test accuracy 0.98",
-        "Deploy the small model | MobileNetV2 matches VGG16 at 1/58 the parameters",
-        "Pre-training buys cost | scratch also reaches 1.00, at 27× the parameters",
-    ], M + 0.26, 2.10, 5.3, 1.45, size=11.5, gap=6, marker=GREEN)
-    box(slide, 6.90, 1.58, 5.70, 2.00, fill=CARD, line=BORDER, lw=0.9, radius=0.05)
-    text(slide, 7.12, 1.74, 5.3, 0.32, "LIMITATIONS", size=11, color=RED, bold=True)
-    bullets(slide, [
-        "54 test images on D1 | one error is 1.85 points",
-        "The authors' split is unpublished | we compare trends, not cell by cell",
-        "Classification only | no bounding box, no mask, no area",
-        "The learning rate was not swept",
-    ], 7.12, 2.10, 5.3, 1.45, size=11, gap=3, marker=RED)
-    stat_cards(slide, [("66", "runs"), ("0.98", "mean test accuracy"), ("2.3 M", "parameters deployed")],
-               M, 3.85, 11.88, 1.15, value_size=24, label_size=10)
-    box(slide, M, 5.25, 11.88, 0.95, fill=NAVY, line=None, radius=0.05)
-    text(slide, M + 0.30, 5.42, 7.3, 0.62,
-         "Next: segmentation or anomaly detection — the only way to report where a defect is.",
-         size=12.5, color=WHITE, spacing=1.15)
-    text(slide, 8.45, 5.48, 4.0, 0.5, "github.com/Zheyi-D/am-defect-tl", size=10.5,
-         color=CYAN_LIGHT, align=PP_ALIGN.RIGHT)
-
-
-def s20(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     bg(slide, NAVY)
     box(slide, W - 4.6, -1.4, 6.4, 6.4, fill=RGBColor(0x14, 0x30, 0x4C), radius=0.16)
@@ -424,88 +329,78 @@ def s20(prs, page, total):
     box(slide, M + 0.2, 3.10, 1.4, 0.05, fill=ACCENT, shape=MSO_SHAPE.RECTANGLE)
     text(slide, M + 0.15, 3.38, 8.2, 0.5, "Questions and discussion", size=18, color=CYAN_LIGHT)
     text(slide, M + 0.15, 4.60, 8.2, 1.3,
-         "Code, frozen splits, all 66 runs and the inspection demo:\ngithub.com/Zheyi-D/am-defect-tl",
+         "Code, splits and all 66 runs:\ngithub.com/Zheyi-D/am-defect-tl",
          size=13.5, color=RGBColor(0xC7, 0xD6, 0xE4), spacing=1.3)
     text(slide, W - 2.4, 7.14, 2.0, 0.26, f"{page} / {total}", size=10,
          color=RGBColor(0x74, 0x8C, 0xA2), align=PP_ALIGN.RIGHT)
 
 
-BUILDERS = [s01, s02, s03, s04, s05, s06, s07, s08, s09, s10,
-            s11, s12, s13, s14, s15, s16, s17, s18, s19, s20]
+BUILDERS = [s01, s02, s03, s04, s05, s06, s07, s08,
+            s09, s10, s11, s12, s13, s14, s15, s16]
 
 
 NOTES = [
     "PART 1 / 8 · presenter 【NAME 1】 · budget 0:20\nTitle, the paper (ESWA 253, 124293) and one "
-    "sentence on what the group built.",
+    "sentence on what the group did.",
 
-    "PART 1 / 8 · presenter 【NAME 1】 · budget 0:50\nKeep this short: three ways to inspect a printed "
-    "part, we take camera + ML, labels are scarce so we reuse ImageNet features.\nThen the objective: "
-    "reproduce 11 backbones and measure the deployment cost. 11 × 3 × 2 = 66 runs.",
+    "PART 1 / 8 · presenter 【NAME 1】 · budget 0:50\nBackground: printed parts show stringing and poor "
+    "layer bonding; inspection by eye is slow; only 271 real photographs exist.\nObjective: freeze an "
+    "ImageNet backbone, train a small head, and reproduce the comparison of eleven backbones. Keep it "
+    "short — the detail starts on the next slide.",
 
-    "PART 2 / 8 · presenter 【NAME 2】 · budget 0:45\nPoint at the grid: eight defects (stringing) on "
-    "top, eight clean parts below.\nNumbers: D1 271 real (136/135), 5184 × 3456; D2 3,017 augmented "
-    "(947/2,070), 128 × 128.",
+    "PART 2 / 8 · presenter 【NAME 2】 · budget 0:50\nPoint at the grid: eight defects on top, eight "
+    "clean parts below; the defect is the thin extruded strands.\nD1: 271 real photos, 136/135, "
+    "5184 × 3456. D2: 3,017 copies, 947/2,070, 128 × 128.",
 
-    "PART 2 / 8 · presenter 【NAME 2】 · budget 0:45\nRotation, flip and brightness; 11 copies per "
-    "image → 271 becomes 3,017.\nBe precise: the copies are 128 px and come from the same 271 photos.",
+    "PART 2 / 8 · presenter 【NAME 2】 · budget 0:45\nRotation ±15°, horizontal flip, brightness; "
+    "eleven copies per image, so 271 photographs become 3,017 training images.\nCopies are stored at "
+    "128 × 128 and read at 224 × 224.",
 
-    "PART 3 / 8 · presenter 【NAME 3】 · budget 0:50\nWalk the five preprocessing blocks, then the split "
-    "bars: 189/28/54 and 2,112/302/603, seed 42, identical for all 66 runs.\nSay why the cache exists: "
-    "decoding a 5184 × 3456 JPEG costs about 80 s per epoch.",
+    "PART 3 / 8 · presenter 【NAME 3】 · budget 0:50\nWalk the five preprocessing blocks, then the "
+    "split bars: resize to 224, ImageNet normalisation, cache, then 70/10/20 with seed 42.\nGive the "
+    "split sizes: 189/28/54 on D1 and 2,112/302/603 on D2.",
 
-    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nLeft column trains 2.3 M parameters, right column "
-    "82 k.\nWhy: with 189 images, updating the backbone memorises the training set.\nOn D2 both "
-    "settings reach 0.995 — freezing costs nothing in accuracy and saves 27x the parameters.",
+    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:50\nLeft column trains 2.3 M parameters, right "
+    "column 82 k; every convolution layer is frozen.\nRead the head aloud: pooling, flatten, 64-unit "
+    "layer with ReLU, dropout 0.5, two-unit softmax.\nOn D2 the frozen model matches the fully "
+    "trained one.",
 
-    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nRead the shapes left to right: 224×224×3 → 7×7×C → "
-    "1×1×C → 64 → 64 → 2.\nBlue is frozen, green is trained: 82,114 parameters = 3.56 % of MobileNetV2.",
+    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nWalk the diagram left to right and read the "
+    "shapes: 224×224×3 → 7×7×C → 1×1×C → 64 → 2.\nBlue blocks are frozen, green blocks are trained.",
 
     "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nRead Algorithm 1: freeze the backbone, build the "
-    "head, train the head only, evaluate ten metrics on the frozen test split.\nThe same procedure ran "
-    "66 times.",
+    "head, compute features without gradients, update only the head, evaluate once on the test "
+    "split.",
 
-    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:50\nEach square is one completed run: 11 x 3 x 2 = 66, "
-    "none missing.\nThen the measured cost: D1 runs take about 41 seconds, D2 about 7 minutes, so the "
-    "whole matrix is 250 minutes on one T4 (~4.2 GPU hours).\nClose with the shared hyper-parameters: "
-    "224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.",
+    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:40\nEach square is one completed run: 11 backbones × "
+    "3 optimisers × 2 datasets = 66, all with the same split and the same head.\nThen the shared "
+    "settings: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nLeft: training loss keeps falling. Right: accuracy "
-    "saturates after ~10 epochs, and validation loss drifts up after that — the epoch budget only "
-    "matters for the heaviest backbones.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nMobileNetV2 on D1 with Adam: training loss falls "
+    "to 0.01, accuracy reaches 1.00 in ten epochs, validation loss then rises while accuracy stays "
+    "flat — the extra epochs fit noise.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nHow we test: one pass over the frozen test split, "
-    "then ten metrics and a 2×2 confusion matrix; positive class is defect.\nPoint out why: on 54 test "
-    "images one mistake costs 1.85 points, so accuracy alone is not enough.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nRead the D2 numbers: mean 0.9849 over 603 test "
+    "images, from 0.920 for EffNet-V2M to 0.997 for Xception; VGG16, VGG19 and MobileNetV2 are above "
+    "0.990.\nThe grey dots are the same ranking on the 54-image D1 split.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nRead the D2 numbers: mean 0.9849 over 603 test "
-    "images, from 0.920 (EffNet-V2M) to 0.997 (Xception); the D1 dots show the same ranking.\n"
-    "Do not announce a winner.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nThe optimiser moves the score by 0-4 points and "
+    "only for the weakest backbone; the backbone ranking never changes.\nThe right panel shows "
+    "EffNet-V2M on D2 oscillating between 0.86 and 0.99 from epoch to epoch.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nAll on D2: the optimiser moves the number by 0-4 "
-    "points and only for the weakest backbone; the ranking never changes.\nState the limitation: the "
-    "learning rate was not swept.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nOverall we are +19.5 on D1 and +13.9 on D2, but "
+    "three EfficientNet cells report F1 = 0 in the paper, so the fair comparison is +8.2 and "
+    "+7.9.\nThe rest is explained by the unpublished split and the paper's input normalisation.",
 
-    "PART 8 / 8 · presenter 【NAME 8】 · budget 1:00\nWalk the delta chart, then the trap: three "
-    "EfficientNets report F1 = 0, so the raw gap is inflated. Fair comparison: +8.2 points on D1.",
+    "PART 6 / 8 · presenter 【NAME 6】, operated by 【NAME 7】 · budget 2:00\nHand over to the live demo: "
+    "load a defect photo, then a clean one, show the verdict with confidence and cycle time, then the "
+    "session log and the CSV export.\nIf anything fails, play the fallback recording "
+    "【TBD: demo_fallback.mp4】 and keep talking.",
 
-    "PART 8 / 8 · presenter 【NAME 8】 · budget 0:50\nThe augmented set was rebuilt with provenance and "
-    "trained twice: random split vs split grouped by source image.\n|Δacc| ≤ 1.5 %, mostly negative — a "
-    "negative control result.",
-
-    "PART 8 / 8 · presenter 【NAME 8】 · budget 0:45\nAttention sits on the part, not the background.\n"
-    "But the map is 7 × 7 with a 4 × 4 pooling step, so it marks a region, not a defect mask.",
-
-    "PART 8 / 8 · presenter 【NAME 8】 · budget 0:45\nMobileNetV2 22.9 ms on CPU versus VGG16 165 ms; on "
-    "a GPU everything is under 40 ms.\nAt equal accuracy MobileNetV2 is 58× smaller — that is the engine "
-    "we deploy.",
-
-    "PART 6 / 8 · presenter 【NAME 6】 with 【NAME 7】 operating · budget 2:00\nHand over to the live demo: "
-    "load a defect photo, then a clean one, show the log, export the CSV.\nIf anything fails, play the "
-    "fallback recording 【TBD: demo_fallback.mp4】 and keep talking.",
-
-    "PART 8 / 8 · presenter 【NAME 8】 · budget 0:45\nThree conclusions and four limitations, one "
-    "sentence each.\nEnd on the limitation: classification only, 54 test images, learning rate not "
-    "swept.",
+    "PART 8 / 8 · presenter 【NAME 8】 · budget 0:50\nThree conclusions: frozen features are enough "
+    "(0.9849 on D2); accuracy saturates, so the optimiser matters less than the data; MobileNetV2 "
+    "matches VGG16 with 58× fewer parameters.\nThen the limitation: 54 D1 test images and no learning-"
+    "rate sweep.",
 
     "PART 8 / 8 · presenter: all eight on stage · budget 0:20\nThank the audience, point at the "
     "repository link, hand over to Q&A.",
@@ -530,7 +425,7 @@ def build(out: Path) -> Path:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build the 20-slide deck.")
+    ap = argparse.ArgumentParser(description="Build the 16-slide deck.")
     ap.add_argument("--out", type=Path, default=Path("reports/slides_draft.pptx"))
     args = ap.parse_args()
     path = build(args.out)
