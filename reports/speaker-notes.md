@@ -51,11 +51,12 @@
 - Read Algorithm 1: freeze the backbone, build the head, train the head only, evaluate ten metrics on the frozen test split.
 - The same procedure ran 66 times.
 
-## Slide 9 — The experiment matrix
+## Slide 9 — Experimental setup and compute cost
 
-**PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
-- Each square is one completed run: 11 × 3 × 2 = 66.
-- Then the hyper-parameters: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.
+**PART 4 / 8 · presenter 【NAME 4】 · budget 0:50**
+- Each square is one completed run: 11 x 3 x 2 = 66, none missing.
+- Then the measured cost: D1 runs take about 41 seconds, D2 about 7 minutes, so the whole matrix is 250 minutes on one T4 (~4.2 GPU hours).
+- Close with the shared hyper-parameters: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.
 
 ## Slide 10 — What one run looks like, epoch by epoch
 

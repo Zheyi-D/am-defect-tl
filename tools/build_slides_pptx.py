@@ -216,30 +216,46 @@ def s08(prs, page, total):
 
 def s09(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    frame(slide, 4, "MODEL TRAINING", "The experiment matrix", page, total)
+    frame(slide, 4, "MODEL TRAINING", "Experimental setup and compute cost", page, total)
+
+    # ---- left: the 66-cell coverage grid (compact) ----
     backbones = ["VGG16", "VGG19", "ResNet50", "ResNet101", "MobileNetV2", "Xception",
-                 "InceptionResNetV2", "NASNetLarge", "EffNet-B0", "EffNet-B7", "EffNet-V2M"]
-    opts = ["Adam", "SGD", "RMSprop"]
-    x0, y0 = 2.00, 2.12
-    cell, gap = 0.34, 0.11
+                 "IncResNetV2", "NASNetLarge", "EffNet-B0", "EffNet-B7", "EffNet-V2M"]
+    opts = ["Ada", "SGD", "RMS"]
+    x0, y0 = 1.86, 2.02
+    cell, gap = 0.26, 0.09
     for d, ds in enumerate(("D1", "D2")):
-        base = x0 + d * (3 * (cell + gap) + 0.60)
-        text(slide, base - 0.10, y0 - 0.48, 1.6, 0.28, ds, size=13, color=ACCENT, bold=True)
+        base = x0 + d * (3 * (cell + gap) + 0.52)
+        text(slide, base - 0.06, y0 - 0.46, 1.2, 0.26, ds, size=12, color=ACCENT, bold=True)
         for k, o in enumerate(opts):
-            text(slide, base + k * (cell + gap), y0 - 0.22, 0.40, 0.22, o[:3], size=9,
+            text(slide, base + k * (cell + gap) - 0.04, y0 - 0.22, 0.34, 0.20, o, size=7.5,
                  color=MUTED, align=PP_ALIGN.CENTER)
     for i, b in enumerate(backbones):
-        y = y0 + i * 0.34
-        text(slide, M, y - 0.02, 1.20, 0.26, b, size=9.5, color=INK, align=PP_ALIGN.RIGHT)
+        y = y0 + i * 0.29
+        text(slide, M, y - 0.02, 1.10, 0.22, b, size=8.5, color=INK, align=PP_ALIGN.RIGHT)
         for d in range(2):
             for k in range(3):
-                cx = x0 + d * (3 * (cell + gap) + 0.60) + k * (cell + gap)
-                box(slide, cx, y, cell, 0.26, fill=ACCENT, radius=0.25)
-    text(slide, x0, y0 + len(backbones) * 0.34 + 0.18, 7.0, 0.30,
-         "each square = one completed run (11 × 3 × 2 = 66)", size=11, color=MUTED)
-    rows = [["setting", "value"], ["input", "224 × 224"], ["learning rate", "1e-3"],
-            ["epochs", "30 / 50"], ["batch", "8 / 32"], ["seed", "42"]]
-    table_block(slide, rows, 8.35, 1.62, 4.25, [1.7, 2.4], size=12, row_h=0.42)
+                cx = x0 + d * (3 * (cell + gap) + 0.52) + k * (cell + gap)
+                box(slide, cx, y, cell, 0.21, fill=ACCENT, radius=0.25)
+    text(slide, x0 - 0.30, y0 + len(backbones) * 0.29 + 0.16, 5.5, 0.26,
+         "all 66 cells completed — no missing run", size=10, color=GREEN, bold=True)
+
+    # ---- right: dataset sizes and measured compute cost ----
+    rows = [["", "D1", "D2"],
+            ["train / val / test", "189 / 28 / 54", "2,112 / 302 / 603"],
+            ["time per run (mean)", "40.9 s", "414 s"],
+            ["longest single run", "82.7 s", "903 s"],
+            ["total GPU time", "22.5 min", "227.8 min"]]
+    table_block(slide, rows, 6.55, 1.58, 6.05, [2.2, 1.9, 2.0], size=11.5, row_h=0.44)
+    box(slide, 6.55, 3.92, 6.05, 0.55, fill=CARD, line=BORDER, lw=0.8, radius=0.05)
+    text(slide, 6.75, 4.04, 5.7, 0.34,
+         "66 runs on one Tesla T4  =  250 minutes  ≈  4.2 GPU hours", size=12, color=INK, bold=True)
+
+    text(slide, 6.55, 4.75, 6.05, 0.30, "SHARED HYPER-PARAMETERS", size=9.5, color=ACCENT, bold=True)
+    chips = ["input 224 × 224", "lr 1e-3", "30 / 50 epochs", "batch 8 / 32", "seed 42"]
+    for i, name in enumerate(chips):
+        chip(slide, 6.55 + (i % 3) * 2.02, 5.10 + (i // 3) * 0.46, 1.90, 0.38, name,
+             size=9.5, color=INK)
 
 
 def s10(prs, page, total):
@@ -448,8 +464,10 @@ NOTES = [
     "head, train the head only, evaluate ten metrics on the frozen test split.\nThe same procedure ran "
     "66 times.",
 
-    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nEach square is one completed run: 11 × 3 × 2 = 66.\n"
-    "Then the hyper-parameters: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.",
+    "PART 4 / 8 · presenter 【NAME 4】 · budget 0:50\nEach square is one completed run: 11 x 3 x 2 = 66, "
+    "none missing.\nThen the measured cost: D1 runs take about 41 seconds, D2 about 7 minutes, so the "
+    "whole matrix is 250 minutes on one T4 (~4.2 GPU hours).\nClose with the shared hyper-parameters: "
+    "224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.",
 
     "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nLeft: training loss keeps falling. Right: accuracy "
     "saturates after ~10 epochs, and validation loss drifts up after that — the epoch budget only "
