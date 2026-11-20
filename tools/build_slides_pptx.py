@@ -576,6 +576,162 @@ def s23(prs, page, total):
          color=RGBColor(0x74, 0x8C, 0xA2), align=PP_ALIGN.RIGHT)
 
 
+# ---------------------------------------------------------------- speaker notes
+# Timing lives here only — never on the slides.
+NOTES: list[str] = [
+    # 1 cover
+    "PART 1 / 8 · presenter: 【NAME 1】 · budget 0:20 (Part 1 total 1:45)\n"
+    "Say: the title, the paper we reproduce (ESWA 253, 124293) and one sentence on what the group built.\n"
+    "Do not read the group names or the course code aloud — they are on the slide.",
+
+    # 2 roadmap
+    "PART 1 / 8 · presenter: 【NAME 1】 · budget 0:35\n"
+    "Say: eight parts, eight speakers, and every part answers the same three questions — what we did, why, "
+    "and what result it produced.\n"
+    "Do not read the table row by row; point at the eight rows and hand over to Part 2.",
+
+    # 3 problem & objectives
+    "PART 1 / 8 · presenter: 【NAME 1】 · budget 0:50\n"
+    "WHAT: a binary classifier for printed parts — defect or no defect. WHY: manual inspection does not "
+    "scale and only 271 real images exist, so we freeze ImageNet features and train a small head.\n"
+    "RESULT: 66 runs, mean test accuracy 0.98, plus four analyses the paper does not have.\n"
+    "Caution: say 'reproduce and extend', never 'we beat the paper'.",
+
+    # 4 datasets
+    "PART 2 / 8 · presenter: 【NAME 2】 · budget 0:45 (Part 2 total 2:00)\n"
+    "Point at the pair of photos: defect (stringing) on the left, no defect on the right.\n"
+    "State the numbers: D1 = 271 real photos (136/135), 5184 × 3456; D2 = 3,017 augmented copies "
+    "(947/2,070), 128 × 128.\n"
+    "Say explicitly that D2 is an augmentation of D1, not an independent dataset.",
+
+    # 5 augmentation
+    "PART 2 / 8 · presenter: 【NAME 2】 · budget 0:50\n"
+    "WHAT: rotation ±15°, horizontal flip, brightness jitter, 11 copies per source image.\n"
+    "WHY: 189 training photos are too few for a CNN. RESULT: 271 → 3,017, but at the cost of 128 px "
+    "resolution and lost provenance.\n"
+    "This is why D2 is reported separately and never used as extra evidence.",
+
+    # 6 preprocessing
+    "PART 2 / 8 · presenter: 【NAME 2】 · budget 0:35\n"
+    "Walk the five blocks left to right, then the split table.\n"
+    "WHY the cache: decoding a 5184 × 3456 JPEG costs about 80 s per epoch. RESULT: under a minute per run "
+    "and the same frozen split for all 66 runs.\n"
+    "Mention the split sizes: D1 189/28/54 and D2 2,112/302/603.",
+
+    # 7 transfer learning
+    "PART 3 / 8 · presenter: 【NAME 3】 · budget 0:40 (Part 3 total 2:00)\n"
+    "Point at the two columns: scratch trains 2.3 M parameters, we train 82 k.\n"
+    "WHY: with 189 images, updating the backbone memorises the training set; freezing turns the problem "
+    "into fitting a small head.\n"
+    "If asked: the backbone is also kept in eval mode so BatchNorm statistics never update.",
+
+    # 8 network
+    "PART 3 / 8 · presenter: 【NAME 3】 · budget 0:40\n"
+    "Walk left to right and read the shapes under each block: 224×224×3 → 7×7×C → 1×1×C → 64 → 64 → 2.\n"
+    "Blue band = frozen ImageNet weights; green band = the only part we train.\n"
+    "Say the number: 82,114 trainable parameters = 3.56 % of MobileNetV2.",
+
+    # 9 head
+    "PART 3 / 8 · presenter: 【NAME 3】 · budget 0:35\n"
+    "32,962 parameters for VGG16 is 0.02 % of the model.\n"
+    "The head is identical for all 11 backbones — only the channel count changes — so the comparison is "
+    "fair.\n"
+    "Checkpoint size 131-515 KB because we save the head only and rebuild the frozen backbone.",
+
+    # 10 matrix
+    "PART 4 / 8 · presenter: 【NAME 4】 · budget 0:45 (Part 4 total 1:30)\n"
+    "Each square is one completed run: 11 backbones × 3 optimisers × 2 datasets = 66.\n"
+    "WHY three optimisers and two datasets: to separate the effect of the backbone from the effect of the "
+    "training recipe.\n"
+    "Then the hyper-parameter table: 224 px, lr 1e-3, 30/50 epochs, batch 8/32, seed 42.",
+
+    # 11 reproducibility
+    "PART 4 / 8 · presenter: 【NAME 4】 · budget 0:40\n"
+    "66/66 runs completed, 10 checkpoints kept, 522 table values re-checked with 0 mismatches.\n"
+    "WHY it matters: every number in the report is regenerated from leaderboard.csv, and the splits are "
+    "frozen in the repository.\n"
+    "RESULT: a one-command rebuild on Kaggle plus a CI job that compiles and runs the contract tests.",
+
+    # 12 backbones
+    "PART 5 / 8 · presenter: 【NAME 5】 · budget 0:45 (Part 5 total 2:00)\n"
+    "Read the two means: 0.9826 on D1, 0.9849 on D2. Five backbones reach 1.0000, the weakest 0.9259.\n"
+    "Point out that the bars are a very narrow band — the choice of backbone barely matters.\n"
+    "Caution: do not announce a winner; see the next-next slide for why.",
+
+    # 13 optimizers
+    "PART 5 / 8 · presenter: 【NAME 5】 · budget 0:40\n"
+    "Adam is the most consistent; the row order does not change between optimisers.\n"
+    "Say the implication: our conclusions do not depend on the optimiser, so we never cherry-pick a column.",
+
+    # 14 how to read
+    "PART 5 / 8 · presenter: 【NAME 5】 · budget 0:35\n"
+    "54 test images → one mistake costs 1.85 accuracy points; anything below ~0.02 is a single photograph.\n"
+    "1.0000 means 'all 54 correct', not 'perfect model' — the 95 % interval for 54/54 is about [0.95, 1.00].\n"
+    "And the model is a whole-image classifier: no box, no mask, no area.",
+
+    # 15 paper
+    "PART 6 / 8 · presenter: 【NAME 6】 · budget 1:00 (Part 6 total 1:50)\n"
+    "Walk the delta chart: most backbones are positive. Then explain the trap: the paper reports F1 = 0 for "
+    "three EfficientNets, which inflates the overall gap.\n"
+    "Fair comparison: +8.2 points on D1, +7.9 on D2.\n"
+    "Main suspects for the rest: the authors do not publish their split and normalise with /255. "
+    "Say 'fair comparison', never 'we beat them'.",
+
+    # 16 leakage
+    "PART 6 / 8 · presenter: 【NAME 6】 · budget 0:50\n"
+    "WHAT: we rebuilt the augmented set keeping provenance and compared a random split with a split grouped "
+    "by source image (6 controlled runs).\n"
+    "WHY: copies of one photo must not sit on both sides of the split.\n"
+    "RESULT: |Δ| ≤ 1.5 %, mostly negative → a negative result, reported as such. The high accuracy is not "
+    "leakage; the task is simply easy.",
+
+    # 17 explainability
+    "PART 7 / 8 · presenter: 【NAME 7】 · budget 0:45 (Part 7 total 2:15)\n"
+    "Point at the middle column: the map looks at the part, not the background. LIME agrees.\n"
+    "But the map is 7 × 7 (≈32 px per cell) and the head averages it with a 4 × 4 pool.\n"
+    "So it can only say 'around here' — we removed the 'defect position' marker from our own UI for that "
+    "reason.",
+
+    # 18 cost
+    "PART 7 / 8 · presenter: 【NAME 7】 · budget 0:45\n"
+    "Measured numbers: MobileNetV2 22.9 ms on CPU, VGG16 165 ms; on a GPU everything is under 40 ms.\n"
+    "RESULT: at the same accuracy, MobileNetV2 is 58× smaller — that is why it is the deployed engine.",
+
+    # 19 ablation
+    "PART 7 / 8 · presenter: 【NAME 7】 · budget 0:45\n"
+    "Three numbers: 1.0000 frozen pretrained, 0.5000 random frozen, 1.0000 random fully trained.\n"
+    "Read them: frozen random features collapse to the majority class, so freezing only works because of the "
+    "ImageNet weights.\n"
+    "But end-to-end training from scratch also reaches 1.0000 — on this dataset pre-training buys cost "
+    "(82 k parameters, 30 s), not accuracy. Say it as a finding, not as a failure.",
+
+    # 20 demo intro
+    "PART 8 / 8 · presenter: 【NAME 8】 · budget 0:40 (Part 8 total 2:40, including the live demo)\n"
+    "Walk the screenshot: photo in, scan, verdict with confidence and cycle time, session log.\n"
+    "WHY MobileNetV2 on D1: 2.3 M parameters, 22.9 ms on CPU, no GPU on site, and D2 weights are never "
+    "shipped because they collapse on full-resolution photos.\n"
+    "State the honesty constraint: the UI shows an attention overlay, never a defect marker.",
+
+    # 21 live demo
+    "PART 8 / 8 · presenter: 【NAME 8】 · budget 2:00 for the live demo\n"
+    "Follow the four steps: defect photo → no-defect photo → show the log → clear the session.\n"
+    "Say the numbers while it runs: 0.3-1.5 s per image, offline, weights cached.\n"
+    "If anything fails, switch to the recorded walkthrough immediately and keep talking — do not debug on "
+    "stage. Fallback file: 【TBD: demo_fallback.mp4】.",
+
+    # 22 conclusions
+    "PART 8 / 8 · presenter: 【NAME 8】 · budget 0:40\n"
+    "Three findings and four limitations, one sentence each.\n"
+    "End on the limitation sentence and the honest next step: localisation needs segmentation or anomaly "
+    "detection, which we did not do.\n"
+    "Then invite questions.",
+
+    # 23 thank you
+    "PART 8 / 8 · presenter: all eight on stage · budget 0:20\n"
+    "Thank the audience, point at the repository link, and hand over to Q&A.\n"
+    "Keep this page short — the whole group should be visible for questions.",
+]
+
 BUILDERS = [s01, s02, s03, s04, s05, s06, s07, s08, s09, s10, s11, s12,
             s13, s14, s15, s16, s17, s18, s19, s20, s21, s22, s23]
 
@@ -590,6 +746,10 @@ def build(out: Path) -> Path:
     total = len(BUILDERS)
     for i, fn in enumerate(BUILDERS, start=1):
         fn(prs, i, total)
+
+    # attach the speaker notes (timing lives here, not on the slides)
+    for note, slide in zip(NOTES, prs.slides):
+        slide.notes_slide.notes_text_frame.text = note
     out.parent.mkdir(parents=True, exist_ok=True)
     prs.save(out)
     return out
