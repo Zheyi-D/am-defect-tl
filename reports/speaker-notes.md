@@ -1,6 +1,6 @@
 # Speaker notes — eight parts
 
-> Exported from `slides_draft.pptx`; the same text sits in each slide's notes pane.
+> Exported from `slides_draft_v10.pptx`; the same text sits in each slide's notes pane.
 > Timing appears here only — never on the slides.
 
 ## Slide 1 — Python-Based Transfer Learning
@@ -37,6 +37,7 @@
 **PART 4 / 8 · presenter 【NAME 4】 · budget 0:45**
 - Left column trains 2.3 M parameters, right column 82 k.
 - Why: with 189 images, updating the backbone memorises the training set.
+- On D2 both settings reach 0.995 — freezing costs nothing in accuracy and saves 27x the parameters.
 
 ## Slide 7 — The network
 
@@ -70,13 +71,13 @@
 ## Slide 12 — Results: eleven backbones
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:45**
-- Read the two means: 0.9826 on D1, 0.9849 on D2; five backbones at 1.0000, the weakest 0.9259.
+- Read the D2 numbers: mean 0.9849 over 603 test images, from 0.920 (EffNet-V2M) to 0.997 (Xception); the D1 dots show the same ranking.
 - Do not announce a winner.
 
 ## Slide 13 — Results: what tuning changes
 
 **PART 5 / 8 · presenter 【NAME 5】 · budget 0:50**
-- Optimiser choice moves the number by 0-4 points and only for the weakest backbone; the ranking never changes; curves oscillate for the heavy model.
+- All on D2: the optimiser moves the number by 0-4 points and only for the weakest backbone; the ranking never changes.
 - State the limitation: the learning rate was not swept.
 
 ## Slide 14 — Results against the reported values

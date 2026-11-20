@@ -136,7 +136,9 @@ def s02(prs, page, total):
          "defect classification, and measure what the deployment actually costs.",
          size=13, color=INK, spacing=1.30)
     stat_cards(slide, [("11", "backbones"), ("3", "optimisers"), ("2", "datasets"), ("66", "runs")],
-               M, 5.00, 11.88, 1.05, value_size=24, label_size=10)
+               M, 4.95, 11.88, 1.05, value_size=24, label_size=10)
+    one_line(slide, 6.20, "Accuracy is reported on D2 (603 test images); D1 (54 test images) is kept as "
+                          "the real-photograph check.", size=12)
 
 
 def s03(prs, page, total):
@@ -183,7 +185,7 @@ def s06(prs, page, total):
             ["conv layers", "all updated", "frozen (0 updated)"],
             ["trainable parameters", "2,305,986 (100 %)", "82,114 (3.56 %)"],
             ["time per run", "minutes", "under a minute"],
-            ["accuracy on D1", "1.0000", "1.0000"]]
+            ["test accuracy (D2)", "0.995", "0.995"]]
     table_block(slide, rows, M, 1.62, 6.75, [2.4, 2.1, 2.2], size=13, row_h=0.52)
     notes(slide, 7.85, 1.66, 4.60, [
         ("WHAT", "Every convolutional layer keeps its ImageNet weights and is never updated; only "
@@ -258,7 +260,8 @@ def s11(prs, page, total):
     pic(slide, "slide_confusion.png", M, 1.58, 7.55, 3.05)
     notes(slide, 8.25, 1.64, 4.30, [
         ("WHAT", "One pass over the frozen test split, then ten metrics and a 2x2 confusion matrix."),
-        ("WHY", "One error on the 54-image D1 split costs 1.85 points, so accuracy alone is not enough."),
+        ("WHY", "One error costs 0.17 points on the 603-image D2 split and 1.85 points on the "
+                "54-image D1 split, so we report ten metrics on both."),
     ], size=SMALL)
     rows = [["metric", "metric"], ["accuracy", "MCC"], ["precision", "kappa"],
             ["recall", "AUC"], ["F1", "mAP"], ["sensitivity", "specificity"]]
@@ -273,18 +276,19 @@ def s11(prs, page, total):
 def s12(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 5, "TRAINING & TESTING", "Results: eleven backbones", page, total)
-    pic(slide, "slide_backbones.png", M, 1.58, 11.88, 4.40)
-    one_line(slide, 6.18, "Mean test accuracy 0.9826 on D1 and 0.9849 on D2; five backbones reach "
-                          "1.0000, the weakest 0.9259.", size=13)
+    pic(slide, "slide_backbones_d2.png", M, 1.56, 11.88, 4.50)
+    one_line(slide, 6.24, "D2 test accuracy averages 0.9849 over 603 images and ranges from 0.920 "
+                          "(EffNet-V2M) to 0.997 (Xception); D1 is the same ranking at 54 images.",
+             size=12.5)
 
 
 def s13(prs, page, total):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     frame(slide, 5, "TRAINING & TESTING", "Results: what tuning changes", page, total)
-    pic(slide, "slide_tuning.png", M, 1.56, 11.88, 4.10)
+    pic(slide, "slide_tuning_d2.png", M, 1.56, 11.88, 4.10)
     notes(slide, M, 5.85, 11.88, [
-        ("WHAT", "Left: three backbones × three optimisers. Right: validation accuracy of the "
-                 "weakest backbone, epoch by epoch."),
+        ("WHAT", "All on D2: left, three backbones × three optimisers; right, the weakest backbone's "
+                 "validation accuracy epoch by epoch."),
         ("RESULT", "Optimiser choice moves the number by 0-4 points and only for the weakest "
                    "backbone; the backbone ranking never changes. Gradients were too coarse to sweep "
                    "the learning rate, which we state as a limitation."),
@@ -303,7 +307,8 @@ def s14(prs, page, total):
     table_block(slide, rows, 8.90, 1.56, 3.60, [1.55, 0.85, 0.85, 0.8], size=10, row_h=0.38)
     notes(slide, 8.90, 3.70, 3.60, [
         ("WHY", "Three EfficientNets report F1 = 0 in the paper, which inflates the overall gap. "
-                "Excluding them we are +8 points ahead."),
+                "Excluding them we are +8 points ahead. Both datasets are shown because the reported "
+                "values are per dataset; D2 carries the headline numbers."),
     ], size=SMALL)
 
 
@@ -433,7 +438,8 @@ NOTES = [
     "decoding a 5184 × 3456 JPEG costs about 80 s per epoch.",
 
     "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nLeft column trains 2.3 M parameters, right column "
-    "82 k.\nWhy: with 189 images, updating the backbone memorises the training set.",
+    "82 k.\nWhy: with 189 images, updating the backbone memorises the training set.\nOn D2 both "
+    "settings reach 0.995 — freezing costs nothing in accuracy and saves 27x the parameters.",
 
     "PART 4 / 8 · presenter 【NAME 4】 · budget 0:45\nRead the shapes left to right: 224×224×3 → 7×7×C → "
     "1×1×C → 64 → 64 → 2.\nBlue is frozen, green is trained: 82,114 parameters = 3.56 % of MobileNetV2.",
@@ -453,12 +459,13 @@ NOTES = [
     "then ten metrics and a 2×2 confusion matrix; positive class is defect.\nPoint out why: on 54 test "
     "images one mistake costs 1.85 points, so accuracy alone is not enough.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nRead the two means: 0.9826 on D1, 0.9849 on D2; "
-    "five backbones at 1.0000, the weakest 0.9259.\nDo not announce a winner.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:45\nRead the D2 numbers: mean 0.9849 over 603 test "
+    "images, from 0.920 (EffNet-V2M) to 0.997 (Xception); the D1 dots show the same ranking.\n"
+    "Do not announce a winner.",
 
-    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nOptimiser choice moves the number by 0-4 points and "
-    "only for the weakest backbone; the ranking never changes; curves oscillate for the heavy model.\n"
-    "State the limitation: the learning rate was not swept.",
+    "PART 5 / 8 · presenter 【NAME 5】 · budget 0:50\nAll on D2: the optimiser moves the number by 0-4 "
+    "points and only for the weakest backbone; the ranking never changes.\nState the limitation: the "
+    "learning rate was not swept.",
 
     "PART 8 / 8 · presenter 【NAME 8】 · budget 1:00\nWalk the delta chart, then the trap: three "
     "EfficientNets report F1 = 0, so the raw gap is inflated. Fair comparison: +8.2 points on D1.",
