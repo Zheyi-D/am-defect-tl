@@ -1,3 +1,5 @@
+> **不写代码、只想快速看懂我们做了什么：读 [docs/PLAIN-GUIDE.md](docs/PLAIN-GUIDE.md)**（大白话 + PPT 每页讲什么 + 到底几个模型）。
+>
 > **第一次接触这个项目：先读 [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** —— 从 0 到 1 讲清数据、模型、66 个实验、4 个分析、两套前端与所有边界。
 >
 > **写报告 / 做 PPT 的同学（及其 AI agent）：先读 [docs/START-HERE.md](docs/START-HERE.md)。**

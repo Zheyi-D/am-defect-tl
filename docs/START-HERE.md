@@ -1,3 +1,5 @@
+> 不想看技术细节？读 [PLAIN-GUIDE.md](PLAIN-GUIDE.md)（大白话版：做了什么 + PPT 每页讲什么 + 模型到底几个）。
+
 > 需要先理解全貌？读 [WALKTHROUGH.md](WALKTHROUGH.md)（从 0 到 1，含每一步的命令与产物）。
 
 # START HERE —— 写报告 / 做 PPT / 录演示的同学先看这个
