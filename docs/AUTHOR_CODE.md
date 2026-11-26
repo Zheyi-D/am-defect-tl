@@ -21,7 +21,7 @@
 |---|---|---|
 | `fault_3d_printing_experiment.ipynb` | 47 cells / **886 行** | **主实验**：迁移学习训练 + 评估 + LIME + Grad-CAM |
 | `basic_algorithm.ipynb` | 139 cells / **3,736 行** | 大型草稿本：11 个骨干逐个试、按优化器分目录跑（路径 `/data/ahsan/additive3d/result1/adam`）、大量中间实验与图 |
-| `base_algorithm.ipynb` | 4 cells / **159 行** | 3 个 **baseline**（MLP / 简单 CNN / 双流 CNN）→ 对应 Studythree 里的 `baseline_one/two/three_*.xlsx` |
+| `base_algorithm.ipynb` | 4 cells / **159 行** | 3 个 **baseline**（MLP / 简单 CNN / 双流 CNN）→ 对应 `baseline_one/two/three_*.xlsx`。**注意：这三个 baseline 只在作者仓库里，论文正文没有**（2026-11-26 核对正式版全文：MLP 0 处、simple CNN 0 处、dual-stream 0 处） |
 
 `fault_3d_printing_experiment.ipynb` 的结构：
 
