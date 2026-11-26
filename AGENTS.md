@@ -128,7 +128,7 @@ status:
 | 大白话说明 | ✅ `docs/PLAIN-GUIDE.md`（不写代码也能看懂：做了什么 + 23 页 PPT 逐页讲什么 + 模型的 6 种数法） |
 | 0→1 说明文档 | ✅ `docs/WALKTHROUGH.md`（数据→模型→66 run→4 分析→两套前端→复现→边界） |
 | 客户端 demo | ✅ `analysis/demo_client.py`（单屏、扫描动效、PASS/FAIL、日志、CSV、CLEAR；固定 MobileNetV2·D1） |
-| Q&A 手册 | ✅ docs/QA-HANDBOOK.md（双语，48 问，按 PPT 八个 part）+ Word 版 docs/QA-HANDBOOK.docx / PDF docs/QA-HANDBOOK.pdf；导出脚本 	ools/export_qa_docx.py |
+| Q&A 手册 | ✅ `docs/QA-HANDBOOK.md`（双语，48 问，按 PPT 八个 part）+ Word 版 `docs/QA-HANDBOOK.docx` / PDF `docs/QA-HANDBOOK.pdf`；导出脚本 `tools/export_qa_docx.py` |
 | 图表完整性 | ✅ 无缺口：Fig. 1–10 全部就绪（`fig_pipeline.png` 为 Fig. 1），Table 1–6 全部生成 |
 
 ## 9. 已知坑（踩过的）
