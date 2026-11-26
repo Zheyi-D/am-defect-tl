@@ -1,54 +1,17 @@
-# 论文原文（本地放一份，不进 Git）
+# 论文原文（本地两份，都不进 Git）
 
-## 已下载的版本
+## 两份文件
 
-| 项 | 内容 |
-|---|---|
-| 文件 | `Ahsan2023_arXiv2310.08645.pdf`（8.8 MB，20 页） |
-| 来源 | arXiv 预印本 · <https://arxiv.org/abs/2310.08645> · PDF: <https://arxiv.org/pdf/2310.08645> |
-| 题目 | *Defect Analysis of 3D Printed Cylinder Object Using Transfer Learning Approaches* |
-| 作者 | Md Manjurul Ahsan, Shivakumar Raman, Zahed Siddique（University of Oklahoma） |
-| 版本 | arXiv v1，提交于 2023-10-12（正文标注 A PREPRINT, October 16, 2023） |
-| 许可 | **CC-BY 4.0**（可自由下载/引用，需署名） |
-| 抽取的纯文本 | `preprint_text.txt`（同样不进 Git，便于 grep） |
+| 文件 | 版本 | 页数 | 来源 |
+|---|---|---|---|
+| `Ahsan2024_ESWA124293_published.pdf` | **正式发表版（ESWA 2024）** | 23 | ScienceDirect，`1-s2.0-S095741742401159X-main.pdf`，2026-11-26 由 Kenneth 提供 |
+| `Ahsan2023_arXiv2310.08645.pdf` | 预印本（arXiv v1, 2023-10） | 20 | <https://arxiv.org/abs/2310.08645>（CC-BY 4.0） |
 
-> 两个文件都在 `.gitignore` 里：体积大、且属于第三方版权材料，不随仓库分发。
-> 重新下载：`curl -L -o docs/paper/Ahsan2023_arXiv2310.08645.pdf https://arxiv.org/pdf/2310.08645`
+配套的纯文本（用于检索）：`published_text.txt`（147 KB）、`preprint_text.txt`（64 KB）。
 
-## ⚠️ 这不是 ESWA 正式发表版
+> PDF 与文本都在 `.gitignore` 里（版权 + 体积），不随仓库分发；`README.md` 入库。
 
-正式版是：*Expert Systems with Applications*, vol. 253, p. 124293, Nov. 2024, DOI `10.1016/j.eswa.2024.124293`
-（作者名单在预印本 3 人基础上增加 Ying-Tao Liu）。**两者内容范围差别很大**，引用时必须区分：
-
-| 维度 | arXiv 预印本（本文件） | ESWA 正式版（我们复现的对象） |
-|---|---|---|
-| 数据集 | **2 个**（Study One / Study Two） | **3 个**（第三个 1,557 张，未公开） |
-| 骨干 | **6 个**（VGG16、VGG19、ResNet50、ResNet101、InceptionResNetV2、MobileNetV2） | **11 个**（另加 Xception、NASNetLarge、EfficientNet-B0/B7/V2-M） |
-| 优化器 | **2 个**（Adam、SGD） | **3 个**（Adam、SGD、RMSprop） |
-| 指标 | 4 个（accuracy / precision / recall / F1） | **10 个**（另加 MCC、kappa、AUC、mAP、sensitivity、specificity） |
-| 可解释性 | **没有**（全文 0 处 LIME / Grad-CAM） | 作者 notebook 里有 LIME + Grad-CAM（见 `docs/AUTHOR_CODE.md`） |
-| baseline 对照 | 没有 | Study Three 含 MLP / 简单 CNN / 双流 CNN |
-
-**含义**：
-- 预印本**不能**用来判断正式版"有没有可解释性/baseline"——它太早期。
-- 我们报告里的对标数字**不是**从这份 PDF 抄的，而是从作者公开的 xlsx 抽取，存在
-  `docs/paper_results.csv`（297 行）与 `docs/PAPER_RESULTS.md`。
-- 如果组员要引用"论文说了什么"，请以 `docs/paper_results.csv` + `docs/AUTHOR_CODE.md` 为准。
-
-## 怎么拿到正式版（Elsevier 付费墙）
-
-| 途径 | 说明 |
-|---|---|
-| **HKU 图书馆**（推荐） | 登录 <https://www.sciencedirect.com/science/article/pii/S0957417424011595> 或经 HKU VPN / EZproxy，可直接下 PDF（机构订阅） |
-| 作者主页 / 代码仓库 | 作者有公开 GitHub（见 `docs/AUTHOR_CODE.md`），可邮件索取 accepted manuscript |
-| 邮件问通讯作者 | 第一作者 Ahsan: `ahsan@ou.edu`（OU SMIS Lab） |
-| 不要用 | Sci-Hub 之类盗版站点（学术不端风险，且 Turnitin/学校网络会记录） |
-
-> 目前我们**没有**正式版 PDF。所有 66 格对标用的作者报告值来自作者 xlsx，不是 PDF 正文，所以不影响实验与结论。
-
-## 引用格式（IEEE）
-
-**正式版（报告 References 用这条）**
+**正式版引用（报告 References 用这条）**
 
 ```text
 [1] M. M. Ahsan, S. Raman, Y.-T. Liu, and Z. Siddique, "Defect analysis of 3D printed object using
@@ -56,20 +19,26 @@
     doi: 10.1016/j.eswa.2024.124293.
 ```
 
-**预印本（只在引用"早期版本"时使用）**
+---
 
-```text
-[2] M. M. Ahsan, S. Raman, and Z. Siddique, "Defect analysis of 3D printed cylinder object using
-    transfer learning approaches," arXiv:2310.08645 [cs.CV], Oct. 2023. [Online].
-    Available: https://arxiv.org/abs/2310.08645
-```
+## 正式版全文核验结果（2026-11-26，逐词计数）
 
-## 用这份 PDF 能做什么
+| 维度 | 预印本（2023） | **正式版（2024，已核）** |
+|---|---|---|
+| 数据集 | 2 个（Study One / Two） | **3 个**（Study Three 追加，第三方公开数据，1,557 张，未随论文发布） |
+| 骨干 | 6 个 | **11 个**（VGG16/19、ResNet50/101、MobileNetV2、InceptionResNetV2、Xception、NASNetLarge、EfficientNet-B0/B7/V2-M） |
+| 优化器 | 2 个（Adam、SGD） | **3 个**（Adam 39 处 / SGD 34 处 / RMSprop 35 处） |
+| 指标 | 4 个 | **10 个**（accuracy、precision、recall、F1、MCC、kappa、AUC、mAP、sensitivity、specificity） |
+| **可解释性** | 0 处 | ✅ **只有 LIME**（全文 13 处）；**Grad-CAM 为 0 处** |
+| 传统 baseline（MLP / 简单 CNN / 双流 CNN） | — | ❌ **论文正文没有**；它们只存在于作者仓库的 `base_algorithm.ipynb` 与 `baseline_one/two/three_*.xlsx` |
 
-| 用途 | 是否可用 |
-|---|---|
-| 写 Introduction / Background 的文献综述 | ✅ 可用（引言、相关工作部分在正式版里基本保留） |
-| 引用方法描述（迁移学习 + 冻结 + 分类头） | ✅ 可用（该部分两版一致：VGG16(ImageNet, include_top=False) + AvgPool + Dense(64)） |
-| 引用"论文有 11 个骨干 / 3 个数据集 / 10 个指标" | ❌ 不能用预印本，要引正式版 |
-| 引用"论文的 LIME/Grad-CAM 结论" | ❌ 预印本没有；正式版需核对原文 |
-| 复现实验 | ⚠️ 不够，详见 `docs/AUTHOR_CODE.md`（作者 notebook 才是唯一高保真来源） |
+**结论（写报告/答问时用）**：
+1. 论文的可解释性用的是 **LIME**，不是 Grad-CAM → 我们说"我们也做了 LIME + Grad-CAM"是准确的；**不能说"论文没有可解释性"**。
+2. 论文**没有**传统机器学习 baseline → 我们补的 majority / 像素逻辑回归 / 冻结特征逻辑回归是**新增**对照，属于加分项，不是"补做论文缺的 baseline"。
+3. 作者仓库另有 `base_algorithm.ipynb`（MLP / 简单 CNN / 双流 CNN），但**没有写进论文**；若被问"你们复现了它的 baseline 吗"，答："论文正文没有这些 baseline；作者仓库里有一份独立 notebook，我们以论文为准。"
+
+---
+
+## 为什么此前只有预印本
+
+Elsevier 正式版在付费墙后，我们最初只能拿到 arXiv 预印本；2026-11-26 组员通过学校订阅下载了正式版（PII `S095741742401159X`），现已入库。预印本内容明显更早（2 数据集 / 6 骨干 / 无 LIME），**引用与对标一律以正式版为准**。

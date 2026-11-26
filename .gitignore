@@ -79,3 +79,4 @@ reports/~$*
 # 第三方论文 PDF 与抽取文本：只放本地，不随仓库分发
 docs/paper/*.pdf
 docs/paper/preprint_text.txt
+docs/paper/published_text.txt
